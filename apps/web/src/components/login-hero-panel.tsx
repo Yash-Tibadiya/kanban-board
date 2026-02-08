@@ -13,14 +13,14 @@ const LoginHeroPanel = () => {
 
       <div className="flex items-center justify-center lg:justify-end h-full w-full relative py-6 lg:py-0 px-4 lg:px-0">
         <img
-          src="https://placehold.co/1000x1000"
+          src="/images/loginHeroLight.png"
           alt="Login Hero"
           width={1000}
           height={1000}
           className="max-w-md w-full object-contain shrink-0 dark:hidden z-20 border-t-2 border-l-2 border-neutral-300 rounded-sm"
         />
         <img
-          src="https://placehold.co/1000x1000"
+          src="/images/loginHeroDark.png"
           alt="Login Hero"
           width={1000}
           height={1000}
