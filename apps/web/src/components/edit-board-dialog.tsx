@@ -1,42 +1,50 @@
-import { useState } from "react";
-import { useCreateBoard } from "../hooks/use-boards";
+import { useState, useEffect } from "react";
+import { useUpdateBoard } from "../hooks/use-boards";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { Board } from "@/lib/api";
 
-interface CreateBoardDialogProps {
+interface EditBoardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  board: Board | null;
 }
 
-export function CreateBoardDialog({
+export function EditBoardDialog({
   open,
   onOpenChange,
-}: CreateBoardDialogProps) {
+  board,
+}: EditBoardDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const createBoard = useCreateBoard();
+  const updateBoard = useUpdateBoard();
 
-  if (!open) return null;
+  useEffect(() => {
+    if (board) {
+      setTitle(board.title);
+      setDescription(board.description || "");
+    }
+  }, [board]);
+
+  if (!open || !board) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) return;
 
-    createBoard.mutate(
-      { title, description },
+    updateBoard.mutate(
+      { id: board.id, data: { title, description } },
       {
         onSuccess: () => {
-          toast.success("Board created successfully");
+          toast.success("Board updated successfully");
           onOpenChange(false);
-          setTitle("");
-          setDescription("");
         },
         onError: (error: any) => {
-          toast.error(error.message || "Failed to create board");
+          toast.error(error.message || "Failed to update board");
         },
       },
     );
@@ -46,7 +54,7 @@ export function CreateBoardDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-md border bg-background p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Create New Board</h2>
+          <h2 className="text-lg font-semibold">Edit Board</h2>
           <Button
             variant="ghost"
             size="icon"
@@ -58,9 +66,9 @@ export function CreateBoardDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="edit-title">Title</Label>
             <Input
-              id="title"
+              id="edit-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Product Roadmap"
@@ -70,9 +78,9 @@ export function CreateBoardDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="edit-description">Description</Label>
             <Textarea
-              id="description"
+              id="edit-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional description..."
@@ -91,10 +99,10 @@ export function CreateBoardDialog({
             </Button>
             <Button
               type="submit"
-              disabled={createBoard.isPending}
+              disabled={updateBoard.isPending}
               className="rounded-none"
             >
-              {createBoard.isPending ? "Creating..." : "Create Board"}
+              {updateBoard.isPending ? "Updating..." : "Update Board"}
             </Button>
           </div>
         </form>

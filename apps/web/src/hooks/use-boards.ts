@@ -42,14 +42,14 @@ export function useCreateBoard() {
   });
 }
 
-export function useUpdateBoard(id: string) {
+export function useUpdateBoard() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateBoardData) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateBoardData }) =>
       api.patch<Board>(`/boards/${id}`, data),
     onSuccess: (updatedBoard) => {
-      queryClient.setQueryData(boardKeys.detail(id), updatedBoard);
+      queryClient.setQueryData(boardKeys.detail(updatedBoard.id), updatedBoard);
       queryClient.invalidateQueries({ queryKey: boardKeys.lists() });
     },
   });

@@ -2,9 +2,11 @@ import { cn } from "@/lib/utils";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useBoards, useDeleteBoard } from "@/hooks/use-boards";
 import { Button } from "@/components/ui/button";
-import { Plus, Layout, Trash2, Settings } from "lucide-react";
+import { Plus, Layout, Trash2, Settings, Pencil } from "lucide-react";
 import { useState } from "react";
 import { CreateBoardDialog } from "./create-board-dialog";
+import { EditBoardDialog } from "./edit-board-dialog";
+import { Board } from "@/lib/api";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +33,7 @@ export function DashboardSidebar() {
   const deleteBoard = useDeleteBoard();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingBoard, setEditingBoard] = useState<Board | null>(null);
   const [deleteBoardId, setDeleteBoardId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -112,7 +115,7 @@ export function DashboardSidebar() {
               <div
                 key={board.id}
                 className={cn(
-                  "group flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                  "group flex items-center justify-between pl-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground border border-edge",
                   currentBoardId === board.id
                     ? "bg-accent text-accent-foreground"
                     : "transparent",
@@ -125,14 +128,24 @@ export function DashboardSidebar() {
                   <Layout className="mr-2 h-4 w-4" />
                   <span className="truncate">{board.title}</span>
                 </Link>
-                <div className="hidden group-hover:flex items-center ml-2">
+                <div className="flex items-center ml-2">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6"
-                    onClick={() => setDeleteBoardId(board.id)}
+                    className="rounded-none min-w-8 w-6 text-muted-foreground hover:text-blue-500 hover:bg-transparent border-x  border-edge"
+                    onClick={() => setEditingBoard(board)}
+                    title="Edit Board"
                   >
-                    <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-none min-w-8 w-6 text-muted-foreground hover:text-destructive hover:bg-transparent border-r border-edge"
+                    onClick={() => setDeleteBoardId(board.id)}
+                    title="Delete Board"
+                  >
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
@@ -142,6 +155,12 @@ export function DashboardSidebar() {
       </div>
 
       <CreateBoardDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+
+      <EditBoardDialog
+        open={!!editingBoard}
+        onOpenChange={(open) => !open && setEditingBoard(null)}
+        board={editingBoard}
+      />
 
       <AlertDialog
         open={!!deleteBoardId}
