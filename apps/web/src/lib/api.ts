@@ -1,0 +1,93 @@
+export const API_URL = "http://localhost:4000";
+
+export type Board = {
+  id: string;
+  title: string;
+  description: string | null;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateBoardData = {
+  title: string;
+  description?: string;
+};
+
+export type UpdateBoardData = {
+  title?: string;
+  description?: string;
+};
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public code: string,
+    public message: string,
+    public details?: unknown,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const error = errorData.error || {};
+    throw new ApiError(
+      response.status,
+      error.code || "UNKNOWN",
+      error.message || "An unexpected error occurred",
+      error.details,
+    );
+  }
+  return response.json();
+}
+
+export const api = {
+  get: async <T>(endpoint: string): Promise<T> => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return handleResponse<T>(response);
+  },
+
+  post: async <T>(endpoint: string, data: unknown): Promise<T> => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+    return handleResponse<T>(response);
+  },
+
+  patch: async <T>(endpoint: string, data: unknown): Promise<T> => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+    return handleResponse<T>(response);
+  },
+
+  delete: async <T>(endpoint: string): Promise<T> => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return handleResponse<T>(response);
+  },
+};

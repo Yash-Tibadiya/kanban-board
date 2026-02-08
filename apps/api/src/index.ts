@@ -4,12 +4,15 @@ import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
 import { sendError } from "./errors";
+import boardRouter from "./routes/board";
 
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
 app.all("/api/auth/*", toNodeHandler(auth));
 app.use(express.json());
+
+app.use("/api/boards", boardRouter);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });

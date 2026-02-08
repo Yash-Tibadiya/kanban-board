@@ -19,7 +19,9 @@
     "dotenv": "^17.2.4",
     "drizzle-orm": "^0.45.1",
     "express": "^4.19.2",
-    "resend": "^6.9.1"
+    "nanoid": "^5.1.6",
+    "resend": "^6.9.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

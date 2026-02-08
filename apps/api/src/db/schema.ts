@@ -89,9 +89,79 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const board = sqliteTable("board", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
+});
+
+export const column = sqliteTable("column", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  order: integer("order").notNull(),
+  boardId: text("board_id")
+    .notNull()
+    .references(() => board.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
+});
+
+export const task = sqliteTable("task", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  priority: text("priority"),
+  order: integer("order").notNull(),
+  columnId: text("column_id")
+    .notNull()
+    .references(() => column.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
+});
+
+export const comment = sqliteTable("comment", {
+  id: text("id").primaryKey(),
+  text: text("text").notNull(),
+  taskId: text("task_id")
+    .notNull()
+    .references(() => task.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  boards: many(board),
+  comments: many(comment),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -104,6 +174,41 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
+    references: [user.id],
+  }),
+}));
+
+export const boardRelations = relations(board, ({ one, many }) => ({
+  user: one(user, {
+    fields: [board.userId],
+    references: [user.id],
+  }),
+  columns: many(column),
+}));
+
+export const columnRelations = relations(column, ({ one, many }) => ({
+  board: one(board, {
+    fields: [column.boardId],
+    references: [board.id],
+  }),
+  tasks: many(task),
+}));
+
+export const taskRelations = relations(task, ({ one, many }) => ({
+  column: one(column, {
+    fields: [task.columnId],
+    references: [column.id],
+  }),
+  comments: many(comment),
+}));
+
+export const commentRelations = relations(comment, ({ one }) => ({
+  task: one(task, {
+    fields: [comment.taskId],
+    references: [task.id],
+  }),
+  user: one(user, {
+    fields: [comment.userId],
     references: [user.id],
   }),
 }));

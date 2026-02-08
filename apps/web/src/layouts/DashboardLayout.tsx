@@ -10,6 +10,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { data: session } = authClient.useSession();
+
   return (
     <div className="flex min-h-svh max-w-screen flex-col overflow-x-hidden">
       <div
@@ -37,14 +39,19 @@ export default function DashboardLayout({
 
           <div className="flex-1" />
 
-          <div className="flex items-center">
+          <div className="flex items-center justify-center">
+            {session && (
+              <span className="hidden sm:flex items-center justify-center px-4 h-12 text-base font-medium border-l border-edge">
+                Hello, {session.user.name}
+              </span>
+            )}
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-none h-12 px-4 hover:bg-accent/50 transition-colors border-l border-edge"
+              className="rounded-none h-12 min-w-12 px-4 hover:bg-accent/50 transition-colors border-l border-edge"
               onClick={() => authClient.signOut()}
             >
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="sm:mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Sign Out</span>
             </Button>
             <span className="flex h-12 w-px bg-border" />
