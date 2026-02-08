@@ -68,7 +68,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-red-500">
       <div className="p-8 bg-white rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Sign In</h1>
         {error && (
@@ -90,9 +90,9 @@ export default function Login() {
         </button>
 
         <div className="flex items-center my-4">
-          <hr className="flex-grow border-t border-gray-300" />
+          <hr className="grow border-t border-gray-300" />
           <span className="mx-4 text-gray-500">OR</span>
-          <hr className="flex-grow border-t border-gray-300" />
+          <hr className="grow border-t border-gray-300" />
         </div>
 
         {!isOtpSent ? (
