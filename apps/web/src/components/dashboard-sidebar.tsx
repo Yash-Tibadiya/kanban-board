@@ -16,6 +16,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Search } from "lucide-react";
 
 export function DashboardSidebar() {
   const { data: boards, isLoading } = useBoards();
@@ -25,6 +32,11 @@ export function DashboardSidebar() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [deleteBoardId, setDeleteBoardId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredBoards = boards?.filter((board) =>
+    board.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const currentBoardId = location.pathname.startsWith("/dashboard/")
     ? location.pathname.split("/dashboard/")[1]
@@ -49,18 +61,30 @@ export function DashboardSidebar() {
 
   return (
     <div className="w-64 min-h-[calc(100svh-7rem)] border-r bg-background flex flex-col h-full sticky top-0">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold tracking-tight mb-2 px-2">
-          Your Boards
-        </h2>
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          className="w-full justify-start"
-          variant="outline"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Create New Board
-        </Button>
+      <div className="p-2 border-b space-y-2">
+        <h2 className="text-lg font-semibold tracking-tight">Your Boards</h2>
+        <div className="flex w-full items-center gap-2">
+          <InputGroup className="flex-1">
+            <InputGroupAddon>
+              <Search className="h-4 w-4 text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput
+              placeholder="Search boards..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9"
+            />
+          </InputGroup>
+          <Button
+            onClick={() => setIsCreateOpen(true)}
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 shrink-0 rounded-none border-dashed"
+            title="Create New Board"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
@@ -68,13 +92,23 @@ export function DashboardSidebar() {
           <div className="px-2 py-4 text-sm text-muted-foreground">
             Loading boards...
           </div>
-        ) : boards?.length === 0 ? (
-          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-            No boards yet
+        ) : filteredBoards?.length === 0 ? (
+          <div className="px-2 py-8 flex flex-col items-center justify-center text-center">
+            <p className="text-sm text-muted-foreground mb-4">
+              No boards found
+            </p>
+            <Button
+              onClick={() => setIsCreateOpen(true)}
+              size="sm"
+              variant="outline"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create New
+            </Button>
           </div>
         ) : (
           <div className="space-y-1">
-            {boards?.map((board) => (
+            {filteredBoards?.map((board) => (
               <div
                 key={board.id}
                 className={cn(

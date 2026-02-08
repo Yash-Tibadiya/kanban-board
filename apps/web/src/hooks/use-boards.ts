@@ -10,7 +10,16 @@ export const boardKeys = {
 export function useBoards() {
   return useQuery({
     queryKey: boardKeys.lists(),
-    queryFn: () => api.get<Board[]>("/boards"),
+    queryFn: async () => {
+      try {
+        return await api.get<Board[]>("/boards");
+      } catch (error: any) {
+        if (error.status === 404) {
+          return [];
+        }
+        throw error;
+      }
+    },
   });
 }
 
