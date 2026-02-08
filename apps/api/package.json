@@ -14,10 +14,12 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
+    "better-auth": "^1.4.18",
     "cors": "^2.8.5",
     "dotenv": "^17.2.4",
     "drizzle-orm": "^0.45.1",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "resend": "^6.9.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

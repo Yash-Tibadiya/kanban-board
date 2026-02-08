@@ -1,10 +1,14 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./auth";
 import { sendError } from "./errors";
 
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
+app.all("/api/auth/*", toNodeHandler(auth));
 app.use(express.json());
 
 app.get("/health", (_req, res) => {

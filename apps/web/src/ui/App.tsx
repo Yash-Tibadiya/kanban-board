@@ -1,18 +1,37 @@
-export function App() {
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "../pages/Login";
+import { authClient } from "../lib/auth-client";
+
+function Home() {
+  const { data: session } = authClient.useSession();
+
+  if (!session) {
+    return <Navigate to="/login" />;
+  }
+
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", padding: 24 }}>
       <h1 style={{ margin: 0 }}>Team Boards (starter)</h1>
       <p style={{ maxWidth: 760, lineHeight: 1.4 }}>
-        This is a minimal scaffold. Candidates will implement routing, auth, board UI,
-        tasks, comments, and all required behaviors.
+        Welcome, {session.user.name}!
       </p>
-
-      <section style={{ marginTop: 16, padding: 16, border: "1px solid #ddd", borderRadius: 12 }}>
-        <h2 style={{ marginTop: 0 }}>API connectivity check</h2>
-        <p>
-          Ensure the API is running and visit <code>/health</code> on port 4000.
-        </p>
-      </section>
+      <button
+        onClick={() => authClient.signOut()}
+        style={{ marginTop: 16, padding: "8px 16px", cursor: "pointer" }}
+      >
+        Sign Out
+      </button>
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
