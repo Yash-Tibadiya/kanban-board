@@ -1,7 +1,11 @@
 import { Header } from "./_components/header";
 import { Footer } from "./_components/footer";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex min-h-svh max-w-screen flex-col overflow-x-hidden">
       <Header />
