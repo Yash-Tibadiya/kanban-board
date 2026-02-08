@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useBoard } from "../hooks/use-boards";
 import {
   useColumns,
@@ -7,7 +7,15 @@ import {
   useDeleteColumn,
 } from "../hooks/use-columns";
 import { Button } from "./ui/button";
-import { Plus, X, Pencil, Trash2, ArrowRight } from "lucide-react";
+import {
+  Plus,
+  X,
+  Pencil,
+  Trash2,
+  ArrowRight,
+  PanelRightOpen,
+  PanelRightClose,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -22,9 +30,15 @@ import {
 
 interface DashboardContentProps {
   boardId: string;
+  isSidebarOpen: boolean;
+  onToggleSidebar: () => void;
 }
 
-export function DashboardContent({ boardId }: DashboardContentProps) {
+export function DashboardContent({
+  boardId,
+  isSidebarOpen,
+  onToggleSidebar,
+}: DashboardContentProps) {
   const {
     data: board,
     isLoading: isBoardLoading,
@@ -109,8 +123,32 @@ export function DashboardContent({ boardId }: DashboardContentProps) {
 
   return (
     <div className="flex h-full min-h-[calc(100svh-7rem)] flex-col">
-      <header className="border-b px-6 py-4">
-        <h1 className="text-2xl font-bold">{board.title}</h1>
+      <header className="border-b px-6 py-4 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          {!isSidebarOpen && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-none border-dashed mr-2"
+              onClick={onToggleSidebar}
+              title="Open Sidebar"
+            >
+              <PanelRightClose className="h-5! w-5! shrink-0" />
+            </Button>
+          )}
+          {isSidebarOpen && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 rounded-none border-dashed mr-2"
+              onClick={onToggleSidebar}
+              title="Close Sidebar"
+            >
+              <PanelRightOpen className="h-5! w-5! shrink-0" />
+            </Button>
+          )}
+          <h1 className="text-2xl font-bold">{board.title}</h1>
+        </div>
         {board.description && (
           <p className="text-muted-foreground">{board.description}</p>
         )}
@@ -121,11 +159,8 @@ export function DashboardContent({ boardId }: DashboardContentProps) {
             <div className="w-80 p-4">Loading columns...</div>
           ) : (
             columns?.map((column) => (
-              <>
-                <div
-                  key={column.id}
-                  className="flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm"
-                >
+              <Fragment key={column.id}>
+                <div className="flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm">
                   <div className="flex items-center justify-between min-h-[40px]">
                     {editingColumnId === column.id ? (
                       <form
@@ -200,7 +235,7 @@ export function DashboardContent({ boardId }: DashboardContentProps) {
                   </div>
                 </div>
                 <div className="w-px h-full min-h-[calc(100svh-16rem)] border-r border-edge"></div>
-              </>
+              </Fragment>
             ))
           )}
 

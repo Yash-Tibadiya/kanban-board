@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useBoards, useDeleteBoard } from "@/hooks/use-boards";
 import { Button } from "@/components/ui/button";
-import { Plus, Layout, Trash2, Settings, Pencil } from "lucide-react";
+import { Plus, Layout, Trash2, Pencil, Search } from "lucide-react";
 import { useState } from "react";
 import { CreateBoardDialog } from "./create-board-dialog";
 import { EditBoardDialog } from "./edit-board-dialog";
@@ -24,9 +24,12 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { Search } from "lucide-react";
 
-export function DashboardSidebar() {
+interface DashboardSidebarProps {
+  isOpen?: boolean;
+}
+
+export function DashboardSidebar({ isOpen = true }: DashboardSidebarProps) {
   const { data: boards, isLoading } = useBoards();
   const location = useLocation();
   const navigate = useNavigate();
@@ -62,10 +65,12 @@ export function DashboardSidebar() {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="w-64 min-h-[calc(100svh-7rem)] border-r bg-background flex flex-col h-full sticky top-0">
+    <div className="w-64 min-h-[calc(100svh-7rem)] border-r bg-background flex flex-col h-full sticky top-0 transition-all duration-300">
       <div className="p-2 border-b space-y-2">
-        <h2 className="text-lg font-semibold tracking-tight">Your Boards</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Your Boards</h2>
         <div className="flex w-full items-center gap-2">
           <InputGroup className="flex-1">
             <InputGroupAddon>
