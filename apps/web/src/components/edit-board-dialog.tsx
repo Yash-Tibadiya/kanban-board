@@ -5,7 +5,14 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Board } from "@/lib/api";
 
 interface EditBoardDialogProps {
@@ -51,18 +58,14 @@ export function EditBoardDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md border bg-background p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Edit Board</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Edit Board</DialogTitle>
+          <DialogDescription>
+            Update the details of your board.
+          </DialogDescription>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -88,7 +91,7 @@ export function EditBoardDialog({
             />
           </div>
 
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -104,9 +107,9 @@ export function EditBoardDialog({
             >
               {updateBoard.isPending ? "Updating..." : "Update Board"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

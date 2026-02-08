@@ -5,7 +5,14 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface CreateBoardDialogProps {
   open: boolean;
@@ -43,18 +50,14 @@ export function CreateBoardDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md border bg-background p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Create New Board</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Create New Board</DialogTitle>
+          <DialogDescription>
+            Enter the details for your new board.
+          </DialogDescription>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -80,7 +83,7 @@ export function CreateBoardDialog({
             />
           </div>
 
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -96,9 +99,9 @@ export function CreateBoardDialog({
             >
               {createBoard.isPending ? "Creating..." : "Create Board"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
