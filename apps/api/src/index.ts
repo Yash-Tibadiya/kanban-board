@@ -5,6 +5,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
 import { sendError } from "./errors";
 import boardRouter from "./routes/board";
+import columnRouter from "./routes/column";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.all("/api/auth/*", toNodeHandler(auth));
 app.use(express.json());
 
 app.use("/api/boards", boardRouter);
+app.use("/api/columns", columnRouter);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });

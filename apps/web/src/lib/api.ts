@@ -19,6 +19,26 @@ export type UpdateBoardData = {
   description?: string;
 };
 
+export type Column = {
+  id: string;
+  title: string;
+  order: number;
+  boardId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateColumnData = {
+  title: string;
+  order?: number;
+  boardId: string;
+};
+
+export type UpdateColumnData = {
+  title?: string;
+  order?: number;
+};
+
 export class ApiError extends Error {
   constructor(
     public status: number,
