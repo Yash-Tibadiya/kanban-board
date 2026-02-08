@@ -1,9 +1,24 @@
 import { useState } from "react";
 import { useBoard } from "../hooks/use-boards";
-import { useColumns, useCreateColumn } from "../hooks/use-columns";
+import {
+  useColumns,
+  useCreateColumn,
+  useUpdateColumn,
+  useDeleteColumn,
+} from "../hooks/use-columns";
 import { Button } from "./ui/button";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Pencil, Trash2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DashboardContentProps {
   boardId: string;
@@ -17,9 +32,15 @@ export function DashboardContent({ boardId }: DashboardContentProps) {
   } = useBoard(boardId);
   const { data: columns, isLoading: isColumnsLoading } = useColumns(boardId);
   const createColumn = useCreateColumn();
+  const updateColumn = useUpdateColumn();
+  const deleteColumn = useDeleteColumn();
 
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState("");
+
+  const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [deleteColumnId, setDeleteColumnId] = useState<string | null>(null);
 
   const handleAddColumn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +57,37 @@ export function DashboardContent({ boardId }: DashboardContentProps) {
       toast.success("Column created");
     } catch (error) {
       toast.error("Failed to create column");
+    }
+  };
+
+  const handleUpdateColumn = async (id: string) => {
+    if (!editTitle.trim()) return;
+    if (editTitle === columns?.find((c) => c.id === id)?.title) {
+      setEditingColumnId(null);
+      return;
+    }
+
+    try {
+      await updateColumn.mutateAsync({
+        id,
+        data: { title: editTitle },
+      });
+      setEditingColumnId(null);
+      toast.success("Column updated");
+    } catch (error) {
+      toast.error("Failed to update column");
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteColumnId) return;
+
+    try {
+      await deleteColumn.mutateAsync(deleteColumnId);
+      setDeleteColumnId(null);
+      toast.success("Column deleted");
+    } catch (error) {
+      toast.error("Failed to delete column");
     }
   };
 
@@ -69,19 +121,83 @@ export function DashboardContent({ boardId }: DashboardContentProps) {
             <div className="w-80 p-4">Loading columns...</div>
           ) : (
             columns?.map((column) => (
-              <>
-                <div
-                  key={column.id}
-                  className="flex h-full max-h-full w-80 shrink-0 flex-col border bg-background p-4 shadow-sm"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="font-semibold">{column.title}</h3>
-                  </div>
+              <div
+                key={column.id}
+                className="flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm"
+              >
+                <div className="flex items-center justify-between min-h-[40px]">
+                  {editingColumnId === column.id ? (
+                    <form
+                      className="flex items-center gap-2 flex-1 px-4 py-2"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleUpdateColumn(column.id);
+                      }}
+                    >
+                      <input
+                        autoFocus
+                        type="text"
+                        className="w-full rounded-none border px-2 py-1 text-sm outline-none focus:border-primary font-semibold"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onBlur={() => handleUpdateColumn(column.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") {
+                            setEditingColumnId(null);
+                          }
+                        }}
+                      />
+                      <Button
+                        type="submit"
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 bg-accent!"
+                        title="Update Column"
+                      >
+                        <ArrowRight />
+                      </Button>
+                    </form>
+                  ) : (
+                    <>
+                      <h3 className="font-semibold text-sm truncate flex-1 px-4 py-2">
+                        {column.title}
+                      </h3>
+                      <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        {/* Hover effect to show buttons? No, user didn't ask for hover. */}
+                      </div>
+                      <div className="flex items-center ml-2 px-4 py-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 hover:bg-transparent"
+                          onClick={() => {
+                            setEditingColumnId(column.id);
+                            setEditTitle(column.title);
+                          }}
+                          title="Edit Column"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-none h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-transparent"
+                          onClick={() => setDeleteColumnId(column.id)}
+                          title="Delete Column"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="h-px border-b border-edge-gray"></div>
+                <div className="px-4 py-2">
                   <div className="flex-1 rounded-none border border-dashed border-muted-foreground/25 flex items-center justify-center text-sm text-muted-foreground">
                     No tasks
                   </div>
                 </div>
-              </>
+              </div>
             ))
           )}
 
@@ -137,6 +253,30 @@ export function DashboardContent({ boardId }: DashboardContentProps) {
           </div>
         </div>
       </main>
+
+      <AlertDialog
+        open={!!deleteColumnId}
+        onOpenChange={(open) => !open && setDeleteColumnId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Column</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this column? All tasks in this
+              column will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
