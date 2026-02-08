@@ -54,3 +54,49 @@ export function useDeleteColumn() {
     },
   });
 }
+
+export function useReorderColumns() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      boardId,
+      columnIds,
+    }: {
+      boardId: string;
+      columnIds: string[];
+    }) =>
+      api.put<{ success: boolean }>(`/boards/${boardId}/columns/reorder`, {
+        columnIds,
+      }),
+    onMutate: async ({ boardId, columnIds }) => {
+      await queryClient.cancelQueries({ queryKey: columnKeys.lists(boardId) });
+
+      const previousColumns = queryClient.getQueryData<Column[]>(
+        columnKeys.lists(boardId),
+      );
+
+      queryClient.setQueryData<Column[]>(columnKeys.lists(boardId), (old) => {
+        if (!old) return [];
+        const newColumns = [...old];
+        newColumns.sort((a, b) => {
+          return columnIds.indexOf(a.id) - columnIds.indexOf(b.id);
+        });
+        return newColumns;
+      });
+
+      return { previousColumns };
+    },
+    onError: (_err, { boardId }, context) => {
+      if (context?.previousColumns) {
+        queryClient.setQueryData(
+          columnKeys.lists(boardId),
+          context.previousColumns,
+        );
+      }
+    },
+    onSettled: (_data, _error, { boardId }) => {
+      queryClient.invalidateQueries({ queryKey: columnKeys.lists(boardId) });
+    },
+  });
+}

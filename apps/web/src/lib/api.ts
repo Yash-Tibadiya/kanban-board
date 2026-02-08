@@ -110,4 +110,16 @@ export const api = {
     });
     return handleResponse<T>(response);
   },
+
+  put: async <T>(endpoint: string, data: unknown): Promise<T> => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+    return handleResponse<T>(response);
+  },
 };

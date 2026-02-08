@@ -5,6 +5,7 @@ import {
   useCreateColumn,
   useUpdateColumn,
   useDeleteColumn,
+  useReorderColumns,
 } from "../hooks/use-columns";
 import { Button } from "./ui/button";
 import {
@@ -55,6 +56,53 @@ export function DashboardContent({
   const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [deleteColumnId, setDeleteColumnId] = useState<string | null>(null);
+  const [activeDragColumnId, setActiveDragColumnId] = useState<string | null>(
+    null,
+  );
+
+  const reorderColumns = useReorderColumns();
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setActiveDragColumnId(id);
+    e.dataTransfer.effectAllowed = "move";
+    // Set a transparent image or custom drag image if desired
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, targetColumnId: string) => {
+    e.preventDefault();
+    if (!activeDragColumnId || activeDragColumnId === targetColumnId) {
+      setActiveDragColumnId(null);
+      return;
+    }
+
+    if (!columns) return;
+
+    const oldIndex = columns.findIndex((c) => c.id === activeDragColumnId);
+    const newIndex = columns.findIndex((c) => c.id === targetColumnId);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      setActiveDragColumnId(null);
+      return;
+    }
+
+    const newColumns = [...columns];
+    const [movedColumn] = newColumns.splice(oldIndex, 1);
+    newColumns.splice(newIndex, 0, movedColumn);
+
+    const newOrderIds = newColumns.map((c) => c.id);
+
+    reorderColumns.mutate({
+      boardId,
+      columnIds: newOrderIds,
+    });
+
+    setActiveDragColumnId(null);
+  };
 
   const handleAddColumn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,8 +208,18 @@ export function DashboardContent({
           ) : (
             columns?.map((column) => (
               <Fragment key={column.id}>
-                <div className="flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm">
-                  <div className="flex items-center justify-between min-h-[40px]">
+                <div
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, column.id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, column.id)}
+                  className={`flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm transition-opacity ${
+                    activeDragColumnId === column.id
+                      ? "opacity-50"
+                      : "opacity-100"
+                  }`}
+                >
+                  <div className="flex items-center justify-between min-h-[40px] cursor-move">
                     {editingColumnId === column.id ? (
                       <form
                         className="flex items-center gap-2 flex-1 px-4 py-2"

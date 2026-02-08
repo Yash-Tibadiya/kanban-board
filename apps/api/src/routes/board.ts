@@ -293,4 +293,82 @@ router.post(
   },
 );
 
+const reorderColumnsSchema = z.object({
+  columnIds: z.array(z.string()),
+});
+
+// Reorder Columns
+router.put(
+  "/:boardId/columns/reorder",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const result = reorderColumnsSchema.safeParse(req.body);
+
+      if (!result.success) {
+        return sendError(res, 400, {
+          code: "BAD_REQUEST",
+          message: "Invalid input",
+          details: result.error.issues.map((e) => ({
+            path: e.path.join("."),
+            issue: e.message,
+          })),
+        });
+      }
+
+      const user = res.locals.user;
+      const { boardId } = req.params;
+      const { columnIds } = result.data;
+
+      // Verify board ownership
+      const [foundBoard] = await db
+        .select()
+        .from(board)
+        .where(and(eq(board.id, boardId), eq(board.userId, user.id)));
+
+      if (!foundBoard) {
+        return sendError(res, 404, {
+          code: "NOT_FOUND",
+          message: "Board not found",
+        });
+      }
+
+      // Verify all columns belong to the board
+      const columns = await db
+        .select()
+        .from(column)
+        .where(and(eq(column.boardId, boardId)));
+
+      const columnIdsSet = new Set(columns.map((c) => c.id));
+      const allColumnsBelongToBoard = columnIds.every((id) =>
+        columnIdsSet.has(id),
+      );
+
+      if (!allColumnsBelongToBoard) {
+        return sendError(res, 400, {
+          code: "BAD_REQUEST",
+          message: "Some columns do not belong to this board",
+        });
+      }
+
+      // Update order
+      await db.transaction(async (tx) => {
+        for (let i = 0; i < columnIds.length; i++) {
+          await tx
+            .update(column)
+            .set({ order: i })
+            .where(eq(column.id, columnIds[i]));
+        }
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      sendError(res, 500, {
+        code: "INTERNAL",
+        message: "Failed to reorder columns",
+      });
+    }
+  },
+);
+
 export default router;
