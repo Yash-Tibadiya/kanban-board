@@ -8,7 +8,7 @@ export default function Login() {
   const { data: session } = authClient.useSession();
 
   if (session) {
-    return <Navigate to="/" />;
+    return <Navigate to="/dashboard" />;
   }
 
   return (
