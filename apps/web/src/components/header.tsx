@@ -32,7 +32,7 @@ export function Header() {
           {/* Logo */}
           <Link to="/">
             <img
-              src="https://placehold.co/32x32"
+              src="/logos/black-logo.png"
               alt="Logo"
               width={32}
               height={32}
