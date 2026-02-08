@@ -104,7 +104,7 @@ export function LoginForm({
       toast.error(error.message || "Invalid code");
     } else {
       toast.success("Logged in successfully");
-      navigate("/"); // Navigate to home instead of /business-info
+      navigate("/dashboard"); // Navigate to home instead of /business-info
     }
     setLoading(false);
   };

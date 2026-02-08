@@ -61,6 +61,7 @@ export const TextHoverEffect = ({
         <motion.radialGradient
           id="revealMask"
           gradientUnits="userSpaceOnUse"
+          initial={{ cx: "50%", cy: "50%" }}
           r="20%"
           animate={maskPosition}
           transition={{ duration: duration ?? 0, ease: "easeOut" }}

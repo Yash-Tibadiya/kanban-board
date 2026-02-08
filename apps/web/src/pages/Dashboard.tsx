@@ -1,5 +1,6 @@
-import { authClient } from "../lib/auth-client";
 import { Navigate } from "react-router-dom";
+import { authClient } from "../lib/auth-client";
+import DashboardLayout from "@/layouts/DashboardLayout";
 
 export default function Dashboard() {
   const { data: session } = authClient.useSession();
@@ -9,17 +10,19 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", padding: 24 }}>
-      <h1 style={{ margin: 0 }}>Team Boards (starter)</h1>
-      <p style={{ maxWidth: 760, lineHeight: 1.4 }}>
-        Welcome, {session.user.name}!
-      </p>
-      <button
-        onClick={() => authClient.signOut()}
-        style={{ marginTop: 16, padding: "8px 16px", cursor: "pointer" }}
-      >
-        Sign Out
-      </button>
-    </div>
+    <DashboardLayout>
+      <div className="p-8">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Team Boards (starter)
+        </h1>
+        <p className="max-w-2xl text-lg text-muted-foreground mt-4">
+          Welcome back,{" "}
+          <span className="font-semibold text-foreground">
+            {session.user.name}
+          </span>
+          !
+        </p>
+      </div>
+    </DashboardLayout>
   );
 }
