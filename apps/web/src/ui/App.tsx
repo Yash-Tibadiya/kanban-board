@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
+import VerifyEmail from "../pages/VerifyEmail";
 import { authClient } from "../lib/auth-client";
 
 function Home() {
@@ -7,6 +8,10 @@ function Home() {
 
   if (!session) {
     return <Navigate to="/login" />;
+  }
+
+  if (!session.user.emailVerified) {
+    return <Navigate to="/verify-email" />;
   }
 
   return (
@@ -30,6 +35,7 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/" element={<Home />} />
       </Routes>
     </BrowserRouter>
