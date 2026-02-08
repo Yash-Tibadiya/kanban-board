@@ -115,89 +115,92 @@ export function DashboardContent({ boardId }: DashboardContentProps) {
           <p className="text-muted-foreground">{board.description}</p>
         )}
       </header>
-      <main className="flex-1 overflow-x-auto p-6 bg-muted/10">
+      <main className="flex-1 overflow-x-auto px-6 pt-6 pb-4 bg-muted/10">
         <div className="flex gap-4 h-full items-start">
           {isColumnsLoading ? (
             <div className="w-80 p-4">Loading columns...</div>
           ) : (
             columns?.map((column) => (
-              <div
-                key={column.id}
-                className="flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm"
-              >
-                <div className="flex items-center justify-between min-h-[40px]">
-                  {editingColumnId === column.id ? (
-                    <form
-                      className="flex items-center gap-2 flex-1 px-4 py-2"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        handleUpdateColumn(column.id);
-                      }}
-                    >
-                      <input
-                        autoFocus
-                        type="text"
-                        className="w-full rounded-none border px-2 py-1 text-sm outline-none focus:border-primary font-semibold"
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        onBlur={() => handleUpdateColumn(column.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") {
-                            setEditingColumnId(null);
-                          }
+              <>
+                <div
+                  key={column.id}
+                  className="flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm"
+                >
+                  <div className="flex items-center justify-between min-h-[40px]">
+                    {editingColumnId === column.id ? (
+                      <form
+                        className="flex items-center gap-2 flex-1 px-4 py-2"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleUpdateColumn(column.id);
                         }}
-                      />
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 bg-accent!"
-                        title="Update Column"
                       >
-                        <ArrowRight />
-                      </Button>
-                    </form>
-                  ) : (
-                    <>
-                      <h3 className="font-semibold text-sm truncate flex-1 px-4 py-2">
-                        {column.title}
-                      </h3>
-                      <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        {/* Hover effect to show buttons? No, user didn't ask for hover. */}
-                      </div>
-                      <div className="flex items-center ml-2 px-4 py-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 hover:bg-transparent"
-                          onClick={() => {
-                            setEditingColumnId(column.id);
-                            setEditTitle(column.title);
+                        <input
+                          autoFocus
+                          type="text"
+                          className="w-full rounded-none border px-2 py-1 text-sm outline-none focus:border-primary font-semibold"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          onBlur={() => handleUpdateColumn(column.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") {
+                              setEditingColumnId(null);
+                            }
                           }}
-                          title="Edit Column"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
+                        />
                         <Button
+                          type="submit"
                           variant="ghost"
                           size="icon"
-                          className="rounded-none h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-transparent"
-                          onClick={() => setDeleteColumnId(column.id)}
-                          title="Delete Column"
+                          className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 bg-accent!"
+                          title="Update Column"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <ArrowRight />
                         </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="h-px border-b border-edge-gray"></div>
-                <div className="px-4 py-2">
-                  <div className="flex-1 rounded-none border border-dashed border-muted-foreground/25 flex items-center justify-center text-sm text-muted-foreground">
-                    No tasks
+                      </form>
+                    ) : (
+                      <>
+                        <h3 className="font-semibold text-sm truncate flex-1 px-4 py-2">
+                          {column.title}
+                        </h3>
+                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          {/* Hover effect to show buttons? No, user didn't ask for hover. */}
+                        </div>
+                        <div className="flex items-center ml-2 px-4 py-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 hover:bg-transparent"
+                            onClick={() => {
+                              setEditingColumnId(column.id);
+                              setEditTitle(column.title);
+                            }}
+                            title="Edit Column"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="rounded-none h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-transparent"
+                            onClick={() => setDeleteColumnId(column.id)}
+                            title="Delete Column"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="h-px border-b border-edge"></div>
+                  <div className="px-4 py-2">
+                    <div className="flex-1 rounded-none border border-dashed border-muted-foreground/25 flex items-center justify-center text-sm text-muted-foreground">
+                      No tasks
+                    </div>
                   </div>
                 </div>
-              </div>
+                <div className="w-px h-full min-h-[calc(100svh-16rem)] border-r border-edge"></div>
+              </>
             ))
           )}
 
