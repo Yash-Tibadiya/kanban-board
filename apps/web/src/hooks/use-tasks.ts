@@ -38,22 +38,6 @@ export function useUpdateTask() {
       queryClient.invalidateQueries({
         queryKey: taskKeys.list(updatedTask.columnId),
       });
-      // If the task was moved from another column, we might need to invalidate that column too.
-      // But purely based on response, we only know current columnId.
-      // Optimistic updates or broader invalidation might be needed for moves.
-      // For now, let's invalidate all tasks if columnId is in dataset?
-      // Actually, if we move a task, the `columnId` in `updatedTask` is the new one.
-      // We don't easily know the old one unless we passed it.
-      // For simplicity/correctness, we might want to invalidate all tasks lists for the board?
-      // But we don't have boardId easily here without passing it.
-      // Let's stick to invalidating the target column for now.
-      // If we move, the UI might be stale on source column.
-      // We can invalidate "tasks" generally? careful with perf.
-      // Better: The UI driving the move (drag & drop) usually handles optimistic updates locally,
-      // so immediate consistency might be less critical or handled there.
-      // Let's just invalidate "tasks" generally for now to be safe on moves?
-      // No, that invalidates all columns.
-      // For `useUpdateTask`, let's accept `oldColumnId` in context if needed, or just invalidate all tasks.
       queryClient.invalidateQueries({ queryKey: taskKeys.all });
     },
   });
@@ -68,6 +52,26 @@ export function useDeleteTask() {
     onSuccess: (_deletedTask, variables) => {
       queryClient.invalidateQueries({
         queryKey: taskKeys.list(variables.columnId),
+      });
+    },
+  });
+}
+
+export function useReorderTasks() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      columnId,
+      taskIds,
+    }: {
+      columnId: string;
+      taskIds: string[];
+    }) => api.reorderTasks(columnId, taskIds),
+    onSuccess: () => {
+      // Invalidate all tasks since moving tasks between columns affects multiple lists
+      queryClient.invalidateQueries({
+        queryKey: taskKeys.all,
       });
     },
   });

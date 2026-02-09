@@ -32,6 +32,7 @@ export type CreateColumnData = {
   title: string;
   order?: number;
   boardId: string;
+  createdAt?: string; // Optional since backend sets it? Or if we use it in optimistic UI
 };
 
 export type UpdateColumnData = {
@@ -172,5 +173,14 @@ export const api = {
       body: JSON.stringify(data),
     });
     return handleResponse<T>(response);
+  },
+
+  reorderTasks: async (
+    columnId: string,
+    taskIds: string[],
+  ): Promise<{ success: true }> => {
+    return api.put<{ success: true }>(`/columns/${columnId}/tasks/reorder`, {
+      taskIds,
+    });
   },
 };

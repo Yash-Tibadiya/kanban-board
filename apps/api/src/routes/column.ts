@@ -241,4 +241,100 @@ router.post("/:id/tasks", requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+const reorderTasksSchema = z.object({
+  taskIds: z.array(z.string()),
+});
+
+// Reorder Tasks in Column
+router.put(
+  "/:id/tasks/reorder",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const result = reorderTasksSchema.safeParse(req.body);
+
+      if (!result.success) {
+        return sendError(res, 400, {
+          code: "BAD_REQUEST",
+          message: "Invalid input",
+          details: result.error.issues.map((e) => ({
+            path: e.path.join("."),
+            issue: e.message,
+          })),
+        });
+      }
+
+      const user = res.locals.user;
+      const { id } = req.params;
+      const { taskIds } = result.data;
+
+      // Verify column ownership/access
+      const [existingColumn] = await db
+        .select({
+          column: column,
+          boardUserId: board.userId,
+        })
+        .from(column)
+        .innerJoin(board, eq(column.boardId, board.id))
+        .where(
+          and(eq(column.id, id), eq(board.userId, user.id)), // Ensure user owns the board of this column
+        );
+
+      if (!existingColumn) {
+        return sendError(res, 404, {
+          code: "NOT_FOUND",
+          message: "Column not found or access denied",
+        });
+      }
+
+      // Verify all tasks belong to the user's boards (security check)
+      // We could ideally check they belong to the SAME board, but for now proving ownership is enough.
+      // Actually, if we are moving tasks between columns, the task might currently belong to another column.
+      // But it MUST belong to a column on a board owned by the user.
+      // Ideally we check that all taskIds exist and are owned by user.
+      const tasks = await db
+        .select({
+          id: task.id,
+          boardUserId: board.userId,
+        })
+        .from(task)
+        .innerJoin(column, eq(task.columnId, column.id))
+        .innerJoin(board, eq(column.boardId, board.id))
+        .where(eq(board.userId, user.id)); // Filter by user ownership
+
+      const userTaskIds = new Set(tasks.map((t) => t.id));
+      const allTasksOwned = taskIds.every((taskId) => userTaskIds.has(taskId));
+
+      if (!allTasksOwned) {
+        return sendError(res, 400, {
+          code: "BAD_REQUEST",
+          message: "One or more tasks not found or access denied",
+        });
+      }
+
+      // Update order and columnId
+      // We are setting these tasks to be in THIS column (:id) with the new order.
+      await db.transaction(async (tx) => {
+        for (let i = 0; i < taskIds.length; i++) {
+          await tx
+            .update(task)
+            .set({
+              order: i,
+              columnId: id, // Move to this column
+              updatedAt: new Date(),
+            })
+            .where(eq(task.id, taskIds[i]));
+        }
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      sendError(res, 500, {
+        code: "INTERNAL",
+        message: "Failed to reorder tasks",
+      });
+    }
+  },
+);
+
 export default router;
