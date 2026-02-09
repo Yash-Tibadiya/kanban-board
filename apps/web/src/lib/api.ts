@@ -39,6 +39,36 @@ export type UpdateColumnData = {
   order?: number;
 };
 
+export type Task = {
+  id: string;
+  title: string;
+  description: string | null;
+  type: string;
+  priority: string | null;
+  order: number;
+  columnId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateTaskData = {
+  title: string;
+  description?: string;
+  type?: string;
+  priority?: string;
+  order?: number;
+  columnId: string;
+};
+
+export type UpdateTaskData = {
+  title?: string;
+  description?: string;
+  type?: string;
+  priority?: string;
+  columnId?: string;
+  order?: number;
+};
+
 export class ApiError extends Error {
   constructor(
     public status: number,

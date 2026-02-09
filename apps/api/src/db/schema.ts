@@ -125,6 +125,7 @@ export const task = sqliteTable("task", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
+  type: text("type").notNull().default("task"),
   priority: text("priority"),
   order: integer("order").notNull(),
   columnId: text("column_id")

@@ -4,38 +4,12 @@ import { useEffect, useState } from "react";
 import {
   useColumns,
   useCreateColumn,
-  useUpdateColumn,
-  useDeleteColumn,
   useReorderColumns,
 } from "../hooks/use-columns";
 import { Button } from "./ui/button";
-import {
-  Plus,
-  X,
-  Pencil,
-  Trash2,
-  ArrowRight,
-  PanelRightOpen,
-  PanelRightClose,
-  Ellipsis,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Plus, X, PanelRightOpen, PanelRightClose } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { BoardColumn } from "./board-column";
 
 interface DashboardContentProps {
   boardId: string;
@@ -55,16 +29,10 @@ export function DashboardContent({
   } = useBoard(boardId);
   const { data: columns, isLoading: isColumnsLoading } = useColumns(boardId);
   const createColumn = useCreateColumn();
-  const updateColumn = useUpdateColumn();
-  const deleteColumn = useDeleteColumn();
   const reorderColumns = useReorderColumns();
 
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState("");
-
-  const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [deleteColumnId, setDeleteColumnId] = useState<string | null>(null);
 
   // Optimistic state for reordering
   const [orderedColumns, setOrderedColumns] = useState<typeof columns>([]);
@@ -102,37 +70,6 @@ export function DashboardContent({
       toast.success("Column created");
     } catch (error) {
       toast.error("Failed to create column");
-    }
-  };
-
-  const handleUpdateColumn = async (id: string) => {
-    if (!editTitle.trim()) return;
-    if (editTitle === columns?.find((c) => c.id === id)?.title) {
-      setEditingColumnId(null);
-      return;
-    }
-
-    try {
-      await updateColumn.mutateAsync({
-        id,
-        data: { title: editTitle },
-      });
-      setEditingColumnId(null);
-      toast.success("Column updated");
-    } catch (error) {
-      toast.error("Failed to update column");
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!deleteColumnId) return;
-
-    try {
-      await deleteColumn.mutateAsync(deleteColumnId);
-      setDeleteColumnId(null);
-      toast.success("Column deleted");
-    } catch (error) {
-      toast.error("Failed to delete column");
     }
   };
 
@@ -200,98 +137,15 @@ export function DashboardContent({
                   <Reorder.Item
                     key={column.id}
                     value={column}
-                    className="flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm"
+                    className="flex h-full max-h-full w-80 shrink-0 flex-col bg-transparent"
                     whileDrag={{
                       scale: 1.02,
                       boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
                       cursor: "grabbing",
                     }}
-                    style={{ position: "relative" }} // generic style needed for some reorder fixes sometimes
+                    style={{ position: "relative" }}
                   >
-                    <div className="flex items-center justify-between min-h-[40px] cursor-move draggable-handle">
-                      {editingColumnId === column.id ? (
-                        <form
-                          className="flex items-center gap-2 flex-1 px-4 py-2"
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            handleUpdateColumn(column.id);
-                          }}
-                        >
-                          <input
-                            autoFocus
-                            type="text"
-                            className="w-full rounded-none border px-2 py-1 text-sm outline-none focus:border-primary font-semibold"
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            onBlur={() => handleUpdateColumn(column.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Escape") {
-                                setEditingColumnId(null);
-                              }
-                            }}
-                          />
-                          <Button
-                            type="submit"
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 bg-accent!"
-                            title="Update Column"
-                          >
-                            <ArrowRight />
-                          </Button>
-                        </form>
-                      ) : (
-                        <>
-                          <h3 className="font-semibold text-sm truncate flex-1 px-4 py-2 select-none">
-                            {column.title}
-                          </h3>
-                          <div
-                            className="flex items-center ml-2 px-4 py-2"
-                            onPointerDown={(e) => e.stopPropagation()}
-                          >
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="rounded-none h-8 w-8 text-muted-foreground hover:bg-transparent data-[state=open]:bg-transparent"
-                                >
-                                  <Ellipsis className="h-4 w-4 shrink-0 text-blue-500" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                align="end"
-                                className="rounded-none"
-                              >
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setEditingColumnId(column.id);
-                                    setEditTitle(column.title);
-                                  }}
-                                  className="rounded-none cursor-pointer"
-                                >
-                                  <Pencil className="mr-2 h-4 w-4 shrink-0" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-destructive! focus:text-destructive rounded-none cursor-pointer"
-                                  onClick={() => setDeleteColumnId(column.id)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4 shrink-0 text-destructive" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <div className="h-px border-b border-edge"></div>
-                    <div className="px-4 py-2">
-                      <div className="flex-1 rounded-none border border-dashed border-muted-foreground/25 flex items-center justify-center text-sm text-muted-foreground">
-                        No tasks
-                      </div>
-                    </div>
+                    <BoardColumn column={column} />
                   </Reorder.Item>
                 ))}
               </Reorder.Group>
@@ -350,30 +204,6 @@ export function DashboardContent({
           )}
         </div>
       </main>
-
-      <AlertDialog
-        open={!!deleteColumnId}
-        onOpenChange={(open) => !open && setDeleteColumnId(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Column</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this column? All tasks in this
-              column will be permanently deleted.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
