@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { db } from "../db";
-import { board, column, task } from "../db/schema";
+import { board, column, task, user } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth";
 import { sendError } from "../errors";
@@ -117,7 +117,7 @@ router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
 // List Tasks for a Column
 router.get("/:id/tasks", requireAuth, async (req: Request, res: Response) => {
   try {
-    const user = res.locals.user;
+    const currentUser = res.locals.user;
     const { id } = req.params;
 
     // Check ownership by joining with board
@@ -128,7 +128,7 @@ router.get("/:id/tasks", requireAuth, async (req: Request, res: Response) => {
       })
       .from(column)
       .innerJoin(board, eq(column.boardId, board.id))
-      .where(and(eq(column.id, id), eq(board.userId, user.id)));
+      .where(and(eq(column.id, id), eq(board.userId, currentUser.id)));
 
     if (!existingColumn) {
       return sendError(res, 404, {
@@ -138,8 +138,24 @@ router.get("/:id/tasks", requireAuth, async (req: Request, res: Response) => {
     }
 
     const tasks = await db
-      .select()
+      .select({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        type: task.type,
+        priority: task.priority,
+        order: task.order,
+        columnId: task.columnId,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        userId: task.userId,
+        user: {
+          name: user.name,
+          image: user.image,
+        },
+      })
       .from(task)
+      .leftJoin(user, eq(task.userId, user.id))
       .where(eq(task.columnId, id))
       .orderBy(task.order);
 
@@ -212,6 +228,7 @@ router.post("/:id/tasks", requireAuth, async (req: Request, res: Response) => {
         priority,
         order: newOrder,
         columnId: id,
+        userId: user.id,
       })
       .returning();
 

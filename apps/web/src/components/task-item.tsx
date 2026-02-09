@@ -3,7 +3,20 @@ import { Reorder } from "motion/react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Pencil, Trash2, GripVertical, Check, X } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  GripVertical,
+  Check,
+  X,
+  FileText,
+  Bug,
+  Star,
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  AlertCircle,
+} from "lucide-react";
 import { useState } from "react";
 import { useDeleteTask, useUpdateTask } from "../hooks/use-tasks";
 import { toast } from "sonner";
@@ -61,25 +74,124 @@ export function TaskItem({ task }: TaskItemProps) {
     }
   };
 
-  const priorityColors: Record<string, string> = {
-    low: "bg-slate-500",
-    medium: "bg-blue-500",
-    high: "bg-orange-500",
-    critical: "bg-red-500",
+  const priorityConfig: Record<
+    string,
+    {
+      icon: React.ElementType;
+      text: string;
+      bg: string;
+      border: string;
+      label: string;
+    }
+  > = {
+    low: {
+      icon: ArrowDown,
+      text: "text-slate-500",
+      bg: "bg-slate-500/10",
+      border: "rgb(100, 116, 139)",
+      label: "Low",
+    },
+    medium: {
+      icon: ArrowRight,
+      text: "text-blue-500",
+      bg: "bg-blue-500/10",
+      border: "rgb(59, 130, 246)",
+      label: "Medium",
+    },
+    high: {
+      icon: ArrowUp,
+      text: "text-orange-500",
+      bg: "bg-orange-500/10",
+      border: "rgb(249, 115, 22)",
+      label: "High",
+    },
+    critical: {
+      icon: AlertCircle,
+      text: "text-red-500",
+      bg: "bg-red-500/10",
+      border: "rgb(239, 68, 68)",
+      label: "Critical",
+    },
   };
 
+  const typeConfig: Record<string, { icon: React.ElementType; label: string }> =
+    {
+      task: { icon: FileText, label: "Task" },
+      bug: { icon: Bug, label: "Bug" },
+      feature: { icon: Star, label: "Feature" },
+    };
+
+  const currentPriority =
+    priorityConfig[task.priority || "medium"] || priorityConfig.medium;
+  const PriorityIcon = currentPriority.icon;
+  const TypeIcon = typeConfig[task.type || "task"]?.icon || FileText;
+
   return (
-    <Reorder.Item value={task} id={task.id} className="mb-2 relative">
+    <Reorder.Item value={task} id={task.id} className="mb-3 relative group">
       <Card
-        className="rounded-none border-l-4 group"
+        className={`rounded-none hover:shadow-md transition-all duration-200 border-l-[3px] ${
+          isEditing ? "ring-2 ring-primary/20" : ""
+        }`}
         style={{
-          borderLeftColor: priorityColors[task.priority || "medium"] || "gray",
+          borderLeftColor: isEditing ? undefined : currentPriority.border,
         }}
       >
         {isEditing ? (
-          <div className="p-3 gap-2 flex flex-col">
+          <div className="p-3 flex flex-col gap-3">
+            <div className="flex gap-2">
+              <Select value={editType} onValueChange={setEditType}>
+                <SelectTrigger className="h-7 text-xs w-[100px] rounded-none">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent className="rounded-none">
+                  <SelectItem value="task">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-3 w-3" /> Task
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="bug">
+                    <div className="flex items-center gap-2">
+                      <Bug className="h-3 w-3" /> Bug
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="feature">
+                    <div className="flex items-center gap-2">
+                      <Star className="h-3 w-3" /> Feature
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={editPriority} onValueChange={setEditPriority}>
+                <SelectTrigger className="h-7 text-xs w-[100px] rounded-none">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent className="rounded-none">
+                  <SelectItem value="low">
+                    <div className="flex items-center gap-2">
+                      <ArrowDown className="h-3 w-3 text-slate-500" /> Low
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="medium">
+                    <div className="flex items-center gap-2">
+                      <ArrowRight className="h-3 w-3 text-blue-500" /> Medium
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="high">
+                    <div className="flex items-center gap-2">
+                      <ArrowUp className="h-3 w-3 text-orange-500" /> High
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="critical">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-3 w-3 text-red-500" /> Critical
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <input
-              className="w-full border p-1 text-sm font-semibold rounded-none"
+              className="w-full border-b pb-1 text-sm font-semibold bg-transparent focus:outline-none focus:border-primary rounded-none"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               placeholder="Task title"
@@ -89,88 +201,107 @@ export function TaskItem({ task }: TaskItemProps) {
               className="min-h-[60px] text-xs resize-none rounded-none"
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
-              placeholder="Description"
+              placeholder="Add a description..."
             />
-            <div className="flex gap-2">
-              <Select value={editType} onValueChange={setEditType}>
-                <SelectTrigger className="h-7 text-xs rounded-none">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="task">Task</SelectItem>
-                  <SelectItem value="bug">Bug</SelectItem>
-                  <SelectItem value="feature">Feature</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={editPriority} onValueChange={setEditPriority}>
-                <SelectTrigger className="h-7 text-xs rounded-none">
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex justify-end gap-2 mt-1">
+
+            <div className="flex justify-end gap-2 pt-2 border-t">
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 rounded-none"
+                className="h-7 px-2 text-xs rounded-none"
                 onClick={() => setIsEditing(false)}
               >
-                <X className="h-4 w-4" />
+                Cancel
               </Button>
               <Button
                 size="sm"
-                className="h-7 w-7 rounded-none"
+                className="h-7 px-2 text-xs rounded-none"
                 onClick={handleUpdate}
               >
-                <Check className="h-4 w-4" />
+                Save
               </Button>
             </div>
           </div>
         ) : (
-          <CardContent className="p-3 text-left">
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10 bg-background/80 rounded-sm">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => setIsEditing(true)}
+          <CardContent className="p-3">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] px-1.5 h-5 font-normal bg-muted rounded-none"
+                >
+                  #{task.id.slice(-4)}
+                </Badge>
+                <TypeIcon className="h-3.5 w-3.5" />
+              </div>
+              <div
+                className={`flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-none ${currentPriority.bg} ${currentPriority.text}`}
               >
-                <Pencil className="h-3 w-3 text-muted-foreground" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 hover:text-destructive"
-                onClick={handleDelete}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
+                <PriorityIcon className="h-3 w-3" />
+                <span className="uppercase">{task.priority}</span>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-1">
-              <span className="font-medium text-sm pr-6 leading-tight wrap-break-word">
+            <div className="group relative">
+              <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10 bg-background/95 backdrop-blur shadow-sm rounded-none border p-0.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 rounded-none"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Pencil className="h-3 w-3 text-muted-foreground" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 hover:text-destructive rounded-none"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+
+              <h3 className="font-medium text-sm leading-tight mb-1 pr-6">
                 {task.title}
-              </span>
+              </h3>
               {task.description && (
-                <p className="text-xs text-muted-foreground line-clamp-2">
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                   {task.description}
                 </p>
               )}
+            </div>
 
-              <div className="flex gap-2 mt-2 items-center">
-                <Badge
-                  variant="outline"
-                  className="text-[10px] px-1 py-0 h-4 rounded-sm uppercase tracking-wider text-muted-foreground border-transparent bg-muted"
-                >
-                  {task.type}
-                </Badge>
-                {/* Priority dot if needed, but border header covers it */}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-dashed">
+              {task.user ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full overflow-hidden bg-muted border flex items-center justify-center shrink-0">
+                    {task.user.image ? (
+                      <img
+                        src={task.user.image}
+                        alt={task.user.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[9px] font-bold text-muted-foreground">
+                        {task.user.name.slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">
+                    {task.user.name}
+                  </span>
+                </div>
+              ) : (
+                <div />
+              )}
+
+              <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                {/*  Use a date formatter if available, for now simple string */}
+                {new Date(task.createdAt).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                })}
               </div>
             </div>
           </CardContent>

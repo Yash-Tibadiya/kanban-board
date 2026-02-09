@@ -131,6 +131,7 @@ export const task = sqliteTable("task", {
   columnId: text("column_id")
     .notNull()
     .references(() => column.id, { onDelete: "cascade" }),
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -199,6 +200,10 @@ export const taskRelations = relations(task, ({ one, many }) => ({
   column: one(column, {
     fields: [task.columnId],
     references: [column.id],
+  }),
+  user: one(user, {
+    fields: [task.userId],
+    references: [user.id],
   }),
   comments: many(comment),
 }));

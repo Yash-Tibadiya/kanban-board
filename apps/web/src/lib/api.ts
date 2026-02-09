@@ -47,8 +47,13 @@ export type Task = {
   priority: string | null;
   order: number;
   columnId: string;
+  userId: string | null;
   createdAt: string;
   updatedAt: string;
+  user?: {
+    name: string;
+    image: string | null;
+  } | null;
 };
 
 export type CreateTaskData = {
