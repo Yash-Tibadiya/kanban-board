@@ -17,7 +17,14 @@ import {
   ArrowRight,
   PanelRightOpen,
   PanelRightClose,
+  Ellipsis,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -238,30 +245,43 @@ export function DashboardContent({
                           <h3 className="font-semibold text-sm truncate flex-1 px-4 py-2 select-none">
                             {column.title}
                           </h3>
-                          <div className="flex items-center ml-2 px-4 py-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 hover:bg-transparent"
-                              onClick={() => {
-                                setEditingColumnId(column.id);
-                                setEditTitle(column.title);
-                              }}
-                              title="Edit Column"
-                              onPointerDown={(e) => e.stopPropagation()} // Prevent drag start
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="rounded-none h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-transparent"
-                              onClick={() => setDeleteColumnId(column.id)}
-                              title="Delete Column"
-                              onPointerDown={(e) => e.stopPropagation()} // Prevent drag start
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                          <div
+                            className="flex items-center ml-2 px-4 py-2"
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="rounded-none h-8 w-8 text-muted-foreground hover:bg-transparent data-[state=open]:bg-transparent"
+                                >
+                                  <Ellipsis className="h-4 w-4 shrink-0 text-blue-500" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className="rounded-none"
+                              >
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setEditingColumnId(column.id);
+                                    setEditTitle(column.title);
+                                  }}
+                                  className="rounded-none cursor-pointer"
+                                >
+                                  <Pencil className="mr-2 h-4 w-4 shrink-0" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive! focus:text-destructive rounded-none cursor-pointer"
+                                  onClick={() => setDeleteColumnId(column.id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4 shrink-0 text-destructive" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </>
                       )}
