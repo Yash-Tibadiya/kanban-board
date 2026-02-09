@@ -1,6 +1,7 @@
 import { Column } from "../lib/api";
 import { useDeleteColumn, useUpdateColumn } from "../hooks/use-columns";
 import { useTasks } from "../hooks/use-tasks";
+import { useTaskTypes } from "../hooks/use-task-types";
 import { useState, useEffect } from "react";
 import { Reorder } from "motion/react";
 import { Button } from "./ui/button";
@@ -33,6 +34,7 @@ interface BoardColumnProps {
 
 export function BoardColumn({ column }: BoardColumnProps) {
   const { data: tasks, isLoading } = useTasks(column.id);
+  const { data: taskTypes = [] } = useTaskTypes();
 
   const updateColumn = useUpdateColumn();
   const deleteColumn = useDeleteColumn();
@@ -140,6 +142,7 @@ export function BoardColumn({ column }: BoardColumnProps) {
         <CreateTaskDialog
           columnId={column.id}
           order={tasks?.length || 0}
+          taskTypes={taskTypes}
           trigger={
             <Button
               variant="ghost"
@@ -161,7 +164,7 @@ export function BoardColumn({ column }: BoardColumnProps) {
           className="list-none space-y-2"
         >
           {orderedTasks.map((task) => (
-            <TaskItem key={task.id} task={task} />
+            <TaskItem key={task.id} task={task} taskTypes={taskTypes} />
           ))}
         </Reorder.Group>
         {orderedTasks.length === 0 && !isLoading && (
@@ -172,7 +175,11 @@ export function BoardColumn({ column }: BoardColumnProps) {
       </ScrollArea>
 
       <div className="p-3 border-t bg-background">
-        <CreateTaskDialog columnId={column.id} order={tasks?.length || 0} />
+        <CreateTaskDialog
+          columnId={column.id}
+          order={tasks?.length || 0}
+          taskTypes={taskTypes}
+        />
       </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

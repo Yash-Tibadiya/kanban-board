@@ -74,6 +74,22 @@ export type UpdateTaskData = {
   order?: number;
 };
 
+export type TaskType = {
+  id: string;
+  name: string;
+  icon: string;
+  color: string | null;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateTaskTypeData = {
+  name: string;
+  icon: string;
+  color?: string | null;
+};
+
 export class ApiError extends Error {
   constructor(
     public status: number,

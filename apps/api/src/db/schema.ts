@@ -1,5 +1,11 @@
 import { relations } from "drizzle-orm";
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  text,
+  integer,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -141,6 +147,30 @@ export const task = sqliteTable("task", {
     .$onUpdate(() => new Date()),
 });
 
+export const taskType = sqliteTable(
+  "task_type",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    icon: text("icon").notNull(),
+    color: text("color"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("task_type_userId_idx").on(table.userId),
+    uniqueIndex("task_type_userId_name_unique").on(table.userId, table.name),
+  ],
+);
+
 export const comment = sqliteTable("comment", {
   id: text("id").primaryKey(),
   text: text("text").notNull(),
@@ -164,6 +194,7 @@ export const userRelations = relations(user, ({ many }) => ({
   accounts: many(account),
   boards: many(board),
   comments: many(comment),
+  taskTypes: many(taskType),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -206,6 +237,13 @@ export const taskRelations = relations(task, ({ one, many }) => ({
     references: [user.id],
   }),
   comments: many(comment),
+}));
+
+export const taskTypeRelations = relations(taskType, ({ one }) => ({
+  user: one(user, {
+    fields: [taskType.userId],
+    references: [user.id],
+  }),
 }));
 
 export const commentRelations = relations(comment, ({ one }) => ({

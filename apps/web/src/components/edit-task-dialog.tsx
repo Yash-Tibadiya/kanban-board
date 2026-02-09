@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUpdateTask } from "../hooks/use-tasks";
-import { Task } from "../lib/api";
+import { useTaskTypes } from "../hooks/use-task-types";
+import { Task, TaskType } from "../lib/api";
 import {
   Dialog,
   DialogContent,
@@ -21,22 +22,31 @@ import {
   SelectValue,
 } from "./ui/select";
 import {
-  FileText,
-  Bug,
-  Star,
   ArrowDown,
   ArrowRight,
   ArrowUp,
   AlertCircle,
+  PlusCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Label } from "./ui/label";
+import { getTaskTypeIcon } from "../lib/task-type-icons";
+import { CreateTaskTypeDialog } from "./create-task-type-dialog";
 
 interface EditTaskDialogProps {
   task: Task;
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  taskTypes?: TaskType[];
+}
+
+function formatTypeLabel(typeName: string) {
+  return typeName
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 export function EditTaskDialog({
@@ -44,22 +54,39 @@ export function EditTaskDialog({
   trigger,
   open: controlledOpen,
   onOpenChange: setControlledOpen,
+  taskTypes,
 }: EditTaskDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [createTypeOpen, setCreateTypeOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : uncontrolledOpen;
   const setOpen = isControlled ? setControlledOpen : setUncontrolledOpen;
 
   const updateTask = useUpdateTask();
+  const { data: fetchedTaskTypes = [] } = useTaskTypes();
+  const availableTaskTypes = (taskTypes ?? fetchedTaskTypes).filter(
+    (taskType) => taskType.name.trim().length > 0,
+  );
 
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
-  const [type, setType] = useState(task.type);
+  const [type, setType] = useState(task.type.trim() || "task");
   const [priority, setPriority] = useState(task.priority || "medium");
+
+  useEffect(() => {
+    if (open) {
+      setTitle(task.title);
+      setDescription(task.description || "");
+      setType(task.type.trim() || "task");
+      setPriority(task.priority || "medium");
+    }
+  }, [open, task]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+
+    const normalizedType = type.trim() || "task";
 
     try {
       await updateTask.mutateAsync({
@@ -67,7 +94,7 @@ export function EditTaskDialog({
         data: {
           title,
           description,
-          type,
+          type: normalizedType,
           priority,
         },
       });
@@ -77,6 +104,18 @@ export function EditTaskDialog({
       toast.error("Failed to update task");
     }
   };
+
+  const normalizedType = type.trim() || "task";
+  const selectedTypeExists = availableTaskTypes.some(
+    (t) => t.name === normalizedType,
+  );
+  const UnknownTypeIcon = selectedTypeExists
+    ? null
+    : getTaskTypeIcon("FileText");
+  const knownTaskType = availableTaskTypes.find(
+    (t) => t.name === normalizedType,
+  );
+  const customTypeLabel = knownTaskType?.name ?? normalizedType;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -112,35 +151,55 @@ export function EditTaskDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="type">Type</Label>
-              <Select value={type} onValueChange={setType}>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="type">Type</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 rounded-none px-2"
+                  onClick={() => setCreateTypeOpen(true)}
+                >
+                  <PlusCircle className="mr-1 h-3.5 w-3.5" />
+                  Create
+                </Button>
+              </div>
+              <Select
+                value={normalizedType}
+                onValueChange={(value) => setType(value || "task")}
+              >
                 <SelectTrigger id="type" className="rounded-none w-full">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent className="rounded-none">
-                  <SelectItem value="task">
-                    <div className="flex items-center">
-                      <FileText className="mr-2 h-4 w-4 text-blue-500" />
-                      <span>Task</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="bug">
-                    <div className="flex items-center">
-                      <Bug className="mr-2 h-4 w-4 text-red-500" />
-                      <span>Bug</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="feature">
-                    <div className="flex items-center">
-                      <Star className="mr-2 h-4 w-4 text-yellow-500" />
-                      <span>Feature</span>
-                    </div>
-                  </SelectItem>
+                  {!selectedTypeExists && UnknownTypeIcon && (
+                    <SelectItem value={normalizedType}>
+                      <div className="flex items-center">
+                        <UnknownTypeIcon className="mr-2 h-4 w-4" />
+                        <span>{formatTypeLabel(customTypeLabel)}</span>
+                      </div>
+                    </SelectItem>
+                  )}
+
+                  {availableTaskTypes.map((taskType) => {
+                    const TypeIcon = getTaskTypeIcon(taskType.icon);
+
+                    return (
+                      <SelectItem key={taskType.id} value={taskType.name}>
+                        <div className="flex items-center">
+                          <TypeIcon className="mr-2 h-4 w-4" />
+                          <span>{formatTypeLabel(taskType.name)}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority" className="h-7">
+                Priority
+              </Label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger id="priority" className="rounded-none w-full">
                   <SelectValue placeholder="Select priority" />
@@ -181,6 +240,14 @@ export function EditTaskDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <CreateTaskTypeDialog
+        open={createTypeOpen}
+        onOpenChange={setCreateTypeOpen}
+        onCreated={(newTaskType) => {
+          setType(newTaskType.name.trim() || "task");
+        }}
+      />
     </Dialog>
   );
 }

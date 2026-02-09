@@ -1,4 +1,4 @@
-import { Task } from "../lib/api";
+import { Task, TaskType } from "../lib/api";
 import { Reorder } from "motion/react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -17,12 +17,22 @@ import {
 import { useDeleteTask } from "../hooks/use-tasks";
 import { toast } from "sonner";
 import { EditTaskDialog } from "./edit-task-dialog";
+import { getTaskTypeIcon } from "../lib/task-type-icons";
 
 interface TaskItemProps {
   task: Task;
+  taskTypes?: TaskType[];
 }
 
-export function TaskItem({ task }: TaskItemProps) {
+function formatTypeLabel(typeName: string) {
+  return typeName
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export function TaskItem({ task, taskTypes = [] }: TaskItemProps) {
   const deleteTask = useDeleteTask();
 
   const handleDelete = async () => {
@@ -74,16 +84,27 @@ export function TaskItem({ task }: TaskItemProps) {
     },
   };
 
-  const typeConfig: Record<string, { icon: React.ElementType; label: string }> =
-    {
-      task: { icon: FileText, label: "Task" },
-      bug: { icon: Bug, label: "Bug" },
-      feature: { icon: Star, label: "Feature" },
-    };
+  const fallbackTypeConfig: Record<
+    string,
+    { icon: React.ElementType; label: string }
+  > = {
+    task: { icon: FileText, label: "task" },
+    bug: { icon: Bug, label: "bug" },
+    feature: { icon: Star, label: "feature" },
+  };
 
   const currentPriority =
     priorityConfig[task.priority || "medium"] || priorityConfig.medium;
-  const currentType = typeConfig[task.type || "task"] || typeConfig.task;
+  const taskTypeDefinition = taskTypes.find((type) => type.name === task.type);
+  const currentType = taskTypeDefinition
+    ? {
+        icon: getTaskTypeIcon(taskTypeDefinition.icon),
+        label: taskTypeDefinition.name,
+      }
+    : fallbackTypeConfig[task.type] || {
+        icon: FileText,
+        label: task.type,
+      };
 
   const PriorityIcon = currentPriority.icon;
   const TypeIcon = currentType.icon;
@@ -108,7 +129,7 @@ export function TaskItem({ task }: TaskItemProps) {
               <div className="flex justify-center items-center gap-1">
                 <TypeIcon className="h-3.5 w-3.5 shrink-0" />
                 <span className="text-[10px] uppercase font-medium flex justify-center items-center">
-                  {currentType.label}
+                  {formatTypeLabel(currentType.label)}
                 </span>
               </div>
             </div>
@@ -124,6 +145,7 @@ export function TaskItem({ task }: TaskItemProps) {
             <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10 bg-background/95 backdrop-blur shadow-sm rounded-none border p-0.5">
               <EditTaskDialog
                 task={task}
+                taskTypes={taskTypes}
                 trigger={
                   <Button
                     variant="ghost"

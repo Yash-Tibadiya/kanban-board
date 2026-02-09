@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useCreateTask } from "../hooks/use-tasks";
+import { useTaskTypes } from "../hooks/use-task-types";
+import { TaskType } from "../lib/api";
 import {
   Dialog,
   DialogContent,
@@ -21,46 +23,64 @@ import {
 } from "./ui/select";
 import {
   Plus,
-  FileText,
-  Bug,
-  Star,
   ArrowDown,
   ArrowRight,
   ArrowUp,
   AlertCircle,
+  PlusCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Label } from "./ui/label";
+import { getTaskTypeIcon } from "../lib/task-type-icons";
+import { CreateTaskTypeDialog } from "./create-task-type-dialog";
 
 interface CreateTaskDialogProps {
   columnId: string;
   order: number;
   trigger?: React.ReactNode;
+  taskTypes?: TaskType[];
+}
+
+function formatTypeLabel(typeName: string) {
+  return typeName
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 export function CreateTaskDialog({
   columnId,
   order,
   trigger,
+  taskTypes,
 }: CreateTaskDialogProps) {
   const [open, setOpen] = useState(false);
+  const [createTypeOpen, setCreateTypeOpen] = useState(false);
   const createTask = useCreateTask();
+  const { data: fetchedTaskTypes = [] } = useTaskTypes();
+  const availableTaskTypes = (taskTypes ?? fetchedTaskTypes).filter(
+    (taskType) => taskType.name.trim().length > 0,
+  );
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("task");
   const [priority, setPriority] = useState("medium");
+  const normalizedType = type.trim() || "task";
+  const selectedTypeExists = availableTaskTypes.some(
+    (taskType) => taskType.name === normalizedType,
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-
     try {
       await createTask.mutateAsync({
         columnId,
         title,
         description,
-        type,
+        type: normalizedType,
         priority,
         order,
       });
@@ -119,35 +139,64 @@ export function CreateTaskDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="type">Type</Label>
-              <Select value={type} onValueChange={setType}>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="type">Type</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 rounded-none px-2"
+                  onClick={() => setCreateTypeOpen(true)}
+                >
+                  <PlusCircle className="mr-1 h-3.5 w-3.5" />
+                  Create
+                </Button>
+              </div>
+              <Select
+                value={normalizedType}
+                onValueChange={(value) => setType(value || "task")}
+              >
                 <SelectTrigger id="type" className="rounded-none w-full">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent className="rounded-none">
-                  <SelectItem value="task">
-                    <div className="flex items-center">
-                      <FileText className="mr-2 h-4 w-4 text-blue-500" />
-                      <span>Task</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="bug">
-                    <div className="flex items-center">
-                      <Bug className="mr-2 h-4 w-4 text-red-500" />
-                      <span>Bug</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="feature">
-                    <div className="flex items-center">
-                      <Star className="mr-2 h-4 w-4 text-yellow-500" />
-                      <span>Feature</span>
-                    </div>
-                  </SelectItem>
+                  {!selectedTypeExists &&
+                    (availableTaskTypes.length > 0 ||
+                      normalizedType !== "task") && (
+                      <SelectItem value={normalizedType}>
+                        <div className="flex items-center">
+                          <span>{formatTypeLabel(normalizedType)}</span>
+                        </div>
+                      </SelectItem>
+                    )}
+
+                  {availableTaskTypes.length === 0 && (
+                    <SelectItem value="task">
+                      <div className="flex items-center">
+                        <span>Task</span>
+                      </div>
+                    </SelectItem>
+                  )}
+
+                  {availableTaskTypes.map((taskType) => {
+                    const TypeIcon = getTaskTypeIcon(taskType.icon);
+
+                    return (
+                      <SelectItem key={taskType.id} value={taskType.name}>
+                        <div className="flex items-center">
+                          <TypeIcon className="mr-2 h-4 w-4" />
+                          <span>{formatTypeLabel(taskType.name)}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority" className="h-7">
+                Priority
+              </Label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger id="priority" className="rounded-none w-full">
                   <SelectValue placeholder="Select priority" />
@@ -188,6 +237,14 @@ export function CreateTaskDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <CreateTaskTypeDialog
+        open={createTypeOpen}
+        onOpenChange={setCreateTypeOpen}
+        onCreated={(newTaskType) => {
+          setType(newTaskType.name.trim() || "task");
+        }}
+      />
     </Dialog>
   );
 }

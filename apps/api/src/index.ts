@@ -7,6 +7,7 @@ import { sendError } from "./errors";
 import boardRouter from "./routes/board";
 import columnRouter from "./routes/column";
 import taskRouter from "./routes/task";
+import taskTypeRouter from "./routes/task-types";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use("/api/boards", boardRouter);
 app.use("/api/columns", columnRouter);
 app.use("/api/tasks", taskRouter);
+app.use("/api/task-types", taskTypeRouter);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
