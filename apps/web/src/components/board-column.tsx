@@ -1,10 +1,9 @@
 import { Column } from "../lib/api";
 import { useDeleteColumn, useUpdateColumn } from "../hooks/use-columns";
-import { useCreateTask, useTasks } from "../hooks/use-tasks";
+import { useTasks } from "../hooks/use-tasks";
 import { useState, useEffect } from "react";
 import { Reorder } from "motion/react";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,10 +20,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { Plus, Ellipsis, Pencil, Trash2 } from "lucide-react";
+import { Ellipsis, Pencil, Trash2 } from "lucide-react";
 import { TaskItem } from "./task-item";
 import { toast } from "sonner";
 import { ScrollArea } from "./ui/scroll-area";
+import { CreateTaskDialog } from "./create-task-dialog";
+import { Input } from "./ui/input"; // Re-adding Input as it's used in JSX
 
 interface BoardColumnProps {
   column: Column;
@@ -32,7 +33,7 @@ interface BoardColumnProps {
 
 export function BoardColumn({ column }: BoardColumnProps) {
   const { data: tasks, isLoading } = useTasks(column.id);
-  const createTask = useCreateTask();
+
   const updateColumn = useUpdateColumn();
   const deleteColumn = useDeleteColumn();
 
@@ -41,9 +42,6 @@ export function BoardColumn({ column }: BoardColumnProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Task creation state
-  const [isAddingTask, setIsAddingTask] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-
   // Reorder state for tasks
   const [orderedTasks, setOrderedTasks] = useState(tasks || []);
 
@@ -75,26 +73,6 @@ export function BoardColumn({ column }: BoardColumnProps) {
       toast.success("Column deleted");
     } catch (error) {
       toast.error("Failed to delete column");
-    }
-  };
-
-  const handleCreateTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTaskTitle.trim()) return;
-
-    try {
-      await createTask.mutateAsync({
-        columnId: column.id,
-        title: newTaskTitle,
-        order: tasks?.length || 0,
-        type: "task", // Default
-        priority: "medium", // Default
-      });
-      setNewTaskTitle("");
-      setIsAddingTask(false);
-      toast.success("Task created");
-    } catch (error) {
-      toast.error("Failed to create task");
     }
   };
 
@@ -180,39 +158,7 @@ export function BoardColumn({ column }: BoardColumnProps) {
       </ScrollArea>
 
       <div className="p-3 border-t bg-background">
-        {isAddingTask ? (
-          <form onSubmit={handleCreateTask} className="flex flex-col gap-2">
-            <Input
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              placeholder="Task title..."
-              autoFocus
-              className="rounded-none text-sm"
-            />
-            <div className="flex gap-2 justify-end">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsAddingTask(false)}
-                className="rounded-none"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" size="sm" className="rounded-none">
-                Add
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-foreground rounded-none"
-            onClick={() => setIsAddingTask(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add Task
-          </Button>
-        )}
+        <CreateTaskDialog columnId={column.id} order={tasks?.length || 0} />
       </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
