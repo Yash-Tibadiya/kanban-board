@@ -92,6 +92,20 @@ export type CreateTaskTypeData = {
   color?: string | null;
 };
 
+export type Comment = {
+  id: string;
+  text: string;
+  taskId: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    name: string;
+    image: string | null;
+  };
+};
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -189,5 +203,17 @@ export const api = {
     return api.put<{ success: true }>("/boards/reorder", {
       boardIds,
     });
+  },
+
+  getComments: async (taskId: string): Promise<Comment[]> => {
+    return api.get<Comment[]>(`/tasks/${taskId}/comments`);
+  },
+
+  createComment: async (taskId: string, text: string): Promise<Comment> => {
+    return api.post<Comment>(`/tasks/${taskId}/comments`, { text });
+  },
+
+  deleteComment: async (commentId: string): Promise<{ success: true }> => {
+    return api.delete<{ success: true }>(`/comments/${commentId}`);
   },
 };

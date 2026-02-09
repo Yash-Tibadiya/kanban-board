@@ -8,6 +8,7 @@ import boardRouter from "./routes/board";
 import columnRouter from "./routes/column";
 import taskRouter from "./routes/task";
 import taskTypeRouter from "./routes/task-types";
+import commentRouter from "./routes/comment";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use("/api/boards", boardRouter);
 app.use("/api/columns", columnRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/task-types", taskTypeRouter);
+app.use("/api", commentRouter);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
