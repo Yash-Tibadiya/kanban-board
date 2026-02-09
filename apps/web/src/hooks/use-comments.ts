@@ -19,15 +19,7 @@ export function useCreateComment(taskId: string) {
 
   return useMutation({
     mutationFn: (text: string) => api.createComment(taskId, text),
-    onSuccess: (newComment) => {
-      // Optimistic update or just invalidation
-      queryClient.setQueryData(
-        commentKeys.list(taskId),
-        (old: Comment[] | undefined) => {
-          if (!old) return [newComment];
-          return [newComment, ...old];
-        },
-      );
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: commentKeys.list(taskId) });
     },
   });
@@ -38,14 +30,7 @@ export function useDeleteComment(taskId: string) {
 
   return useMutation({
     mutationFn: (commentId: string) => api.deleteComment(commentId),
-    onSuccess: (_, commentId) => {
-      queryClient.setQueryData(
-        commentKeys.list(taskId),
-        (old: Comment[] | undefined) => {
-          if (!old) return [];
-          return old.filter((c) => c.id !== commentId);
-        },
-      );
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: commentKeys.list(taskId) });
     },
   });

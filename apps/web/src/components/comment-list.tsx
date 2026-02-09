@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { useComments, useDeleteComment } from "@/hooks/use-comments";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { authClient } from "@/lib/auth-client";
 

@@ -107,38 +107,40 @@ export function TaskDetailsSheet({
 
               <div className="pt-4">
                 <Separator className="mb-4" />
-                <SheetDescription className="flex flex-col items-start text-sm text-foreground/80 gap-3">
-                  {task.user && (
+                <SheetDescription asChild>
+                  <div className="flex flex-col items-start text-sm text-foreground/80 gap-3">
+                    {task.user && (
+                      <span className="flex items-center gap-2 text-xs font-medium">
+                        <span className="text-muted-foreground font-normal min-w-[80px]">
+                          Assigned to:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-5 w-5 border rounded-none">
+                            <AvatarImage
+                              src={task.user.image || undefined}
+                              className="rounded-none"
+                            />
+                            <AvatarFallback className="text-[9px] rounded-none">
+                              {task.user.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-foreground">
+                            {task.user.name}
+                          </span>
+                        </div>
+                      </span>
+                    )}
                     <span className="flex items-center gap-2 text-xs font-medium">
                       <span className="text-muted-foreground font-normal min-w-[80px]">
-                        Assigned to:
+                        Created:
                       </span>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-5 w-5 border rounded-none">
-                          <AvatarImage
-                            src={task.user.image || undefined}
-                            className="rounded-none"
-                          />
-                          <AvatarFallback className="text-[9px] rounded-none">
-                            {task.user.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-foreground">
-                          {task.user.name}
-                        </span>
-                      </div>
+                      <span className="text-foreground">
+                        {formatDistanceToNow(new Date(task.createdAt), {
+                          addSuffix: true,
+                        })}
+                      </span>
                     </span>
-                  )}
-                  <span className="flex items-center gap-2 text-xs font-medium">
-                    <span className="text-muted-foreground font-normal min-w-[80px]">
-                      Created:
-                    </span>
-                    <span className="text-foreground">
-                      {formatDistanceToNow(new Date(task.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </span>
-                  </span>
+                  </div>
                 </SheetDescription>
               </div>
             </SheetHeader>

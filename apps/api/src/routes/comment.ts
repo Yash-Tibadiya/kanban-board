@@ -20,34 +20,8 @@ router.get(
   requireAuth,
   async (req: Request, res: Response) => {
     try {
-      const user = res.locals.user;
       const { taskId } = req.params;
-
-      // Verify task exists and user has access (via board ownership or explicit permission?)
-      // For now, assuming if they can see the task, they can see comments.
-      // We should ideally check if the task belongs to a board the user owns.
-
-      const comments = await db
-        .select({
-          id: comment.id,
-          text: comment.text,
-          taskId: comment.taskId,
-          userId: comment.userId,
-          createdAt: comment.createdAt,
-          updatedAt: comment.updatedAt,
-          user: {
-            id: comment.userId,
-            name: "user.name", // We need to join with user table to get name and image
-            image: "user.image",
-          },
-        })
-        .from(comment)
-        .where(eq(comment.taskId, taskId))
-        .orderBy(desc(comment.createdAt));
-
-      // Since Drizzle simple select doesn't auto-join unless configured,
-      // let's use db.query if possible or manual join.
-      // Using query builder with relations is better.
+      // Get all comments for the task
       const commentsWithUser = await db.query.comment.findMany({
         where: eq(comment.taskId, taskId),
         orderBy: [desc(comment.createdAt)],
@@ -58,6 +32,7 @@ router.get(
 
       res.json(commentsWithUser);
     } catch (error) {
+      console.error("[GET_COMMENTS_ERROR]", error);
       sendError(res, 500, {
         code: "INTERNAL",
         message: "Failed to fetch comments",
