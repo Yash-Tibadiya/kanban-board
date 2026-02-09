@@ -177,7 +177,7 @@ export function DashboardContent({
           <p className="text-muted-foreground">{board.description}</p>
         )}
       </header>
-      <main className="flex-1 overflow-x-auto px-6 pt-6 pb-4 bg-muted/10">
+      <main className="flex-1 overflow-x-auto px-6 pt-6 pb-4 bg-muted/10 ">
         <div className="flex gap-4 h-full items-start">
           {isColumnsLoading ? (
             <div className="w-80 p-4">Loading columns...</div>

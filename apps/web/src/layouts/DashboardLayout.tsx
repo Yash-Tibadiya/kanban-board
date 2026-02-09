@@ -16,14 +16,15 @@ export default function DashboardLayout({
     <div className="flex min-h-svh max-w-screen flex-col overflow-x-hidden">
       <div
         className={cn(
-          "sticky top-0 z-50 max-w-screen overflow-x-hidden bg-background px-2 pt-2",
+          "sticky top-0 max-w-screen bg-background px-2 pt-2",
           "data-[affix=true]:shadow-[0_0_16px_0_black]/8 dark:data-[affix=true]:shadow-[0_0_16px_0_black]",
           "not-dark:data-[affix=true]:**:data-header-container:after:bg-border",
           "transition-shadow duration-300",
+          "z-50",
         )}
       >
         <div
-          className="screen-line-before screen-line-after mx-auto flex h-12 items-center justify-between gap-2 border-x border-edge pl-2 after:z-1 after:transition-[background-color] sm:gap-4 md:max-w-7xl"
+          className="screen-line-before screen-line-after mx-auto flex h-12 items-center justify-between gap-2 border-x border-edge pl-2 after:z-1 after:transition-[background-color] sm:gap-4 md:max-w-[calc(100svw-7rem)] relative"
           data-header-container
         >
           {/* Logo */}
@@ -57,27 +58,33 @@ export default function DashboardLayout({
             <span className="flex h-12 w-px bg-border" />
             <ThemeToggle />
           </div>
+
+          <span className="border-primary/20 bg-muted absolute top-12 left-0 size-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-xs border z-20"></span>
+          <span className="border-primary/20 bg-muted absolute top-12 right-0 size-2.5 translate-x-1/2 -translate-y-1/2 rotate-45 rounded-xs border z-20"></span>
         </div>
       </div>
 
       <main className="flex-1 overflow-y-auto px-2 overflow-x-hidden">
-        <div className="relative mx-auto min-h-[calc(100svh-7rem)] md:max-w-7xl border-x border-edge max-w-screen ">
+        <div className="relative mx-auto min-h-[calc(100svh-7rem)] md:max-w-[calc(100svw-7rem)] border-x border-edge max-w-screen">
           {children}
         </div>
       </main>
 
       <div
         className={cn(
-          "sticky top-0 z-50 max-w-screen overflow-x-hidden bg-background px-2 pb-2",
+          "sticky top-0 z-50 max-w-screen bg-background px-2 pb-2",
           "data-[affix=true]:shadow-[0_0_16px_0_black]/8 dark:data-[affix=true]:shadow-[0_0_16px_0_black]",
           "not-dark:data-[affix=true]:**:data-header-container:before:bg-border",
           "transition-shadow duration-300",
         )}
       >
         <div
-          className="screen-line-before screen-line-after mx-auto flex h-12 items-center justify-between gap-2 border-x border-edge px-2 before:z-1 before:transition-[background-color] sm:gap-4 md:max-w-7xl"
+          className="screen-line-before screen-line-after mx-auto flex h-12 items-center justify-between gap-2 border-x border-edge px-2 before:z-1 before:transition-[background-color] sm:gap-4 md:max-w-[calc(100svw-7rem)]"
           data-header-container
-        ></div>
+        >
+          <span className="border-primary/20 bg-muted absolute top-0 left-0 size-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-xs border z-20"></span>
+          <span className="border-primary/20 bg-muted absolute top-0 right-0 size-2.5 translate-x-1/2 -translate-y-1/2 rotate-45 rounded-xs border z-20"></span>
+        </div>
       </div>
     </div>
   );

@@ -175,7 +175,8 @@
 
   /* Custom scrollbar styling. Thanks @shadcn-ui */
   ::-webkit-scrollbar {
-    width: 5px;
+    width: 4px;
+    height: 4px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
@@ -184,8 +185,8 @@
     background: var(--border);
     border-radius: 5px;
   }
-  * {
+  /* * {
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
-  }
+  } */
 }
