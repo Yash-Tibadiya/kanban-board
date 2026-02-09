@@ -118,7 +118,7 @@ export function BoardColumn({ column }: BoardColumnProps) {
               size="icon"
               className="h-8 w-8 rounded-none"
             >
-              <Ellipsis className="h-4 w-4 text-muted-foreground" />
+              <Ellipsis className="h-4 w-4 text-blue-500" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="rounded-none">
@@ -129,10 +129,10 @@ export function BoardColumn({ column }: BoardColumnProps) {
               <Pencil className="mr-2 h-4 w-4" /> Edit Title
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="text-destructive rounded-none"
+              className="text-destructive rounded-none hover:text-destructive!"
               onClick={() => setDeleteDialogOpen(true)}
             >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete Column
+              <Trash2 className="mr-2 h-4 w-4 text-destructive" /> Delete Column
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -19,7 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { Plus } from "lucide-react";
+import {
+  Plus,
+  FileText,
+  Bug,
+  Star,
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Label } from "./ui/label";
 
@@ -106,10 +115,25 @@ export function CreateTaskDialog({ columnId, order }: CreateTaskDialogProps) {
                 <SelectTrigger id="type" className="rounded-none w-full">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="task">Task</SelectItem>
-                  <SelectItem value="bug">Bug</SelectItem>
-                  <SelectItem value="feature">Feature</SelectItem>
+                <SelectContent className="rounded-none">
+                  <SelectItem value="task">
+                    <div className="flex items-center">
+                      <FileText className="mr-2 h-4 w-4 text-blue-500" />
+                      <span>Task</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="bug">
+                    <div className="flex items-center">
+                      <Bug className="mr-2 h-4 w-4 text-red-500" />
+                      <span>Bug</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="feature">
+                    <div className="flex items-center">
+                      <Star className="mr-2 h-4 w-4 text-yellow-500" />
+                      <span>Feature</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -119,11 +143,31 @@ export function CreateTaskDialog({ columnId, order }: CreateTaskDialogProps) {
                 <SelectTrigger id="priority" className="rounded-none w-full">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
+                <SelectContent className="rounded-none">
+                  <SelectItem value="low">
+                    <div className="flex items-center">
+                      <ArrowDown className="mr-2 h-4 w-4 text-slate-500" />
+                      <span>Low</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="medium">
+                    <div className="flex items-center">
+                      <ArrowRight className="mr-2 h-4 w-4 text-blue-500" />
+                      <span>Medium</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="high">
+                    <div className="flex items-center">
+                      <ArrowUp className="mr-2 h-4 w-4 text-orange-500" />
+                      <span>High</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="critical">
+                    <div className="flex items-center">
+                      <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
+                      <span>Critical</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

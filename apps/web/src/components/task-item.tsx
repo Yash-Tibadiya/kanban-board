@@ -154,7 +154,7 @@ export function TaskItem({ task }: TaskItemProps) {
             </div>
 
             <div className="flex flex-col gap-1">
-              <span className="font-medium text-sm pr-6 leading-tight break-words">
+              <span className="font-medium text-sm pr-6 leading-tight wrap-break-word">
                 {task.title}
               </span>
               {task.description && (
