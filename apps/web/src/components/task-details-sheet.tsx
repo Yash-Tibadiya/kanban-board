@@ -5,6 +5,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 import { Task, TaskType } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +14,7 @@ import { CommentList } from "./comment-list";
 import { getTaskTypeIcon } from "@/lib/task-type-icons";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ArrowDown, ArrowRight, ArrowUp, AlertCircle } from "lucide-react";
 
 interface TaskDetailsSheetProps {
   task: Task;
@@ -44,19 +46,43 @@ export function TaskDetailsSheet({
               <div className="flex items-center gap-2">
                 <Badge
                   variant="outline"
-                  className="text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1.5 py-1 px-2 h-6 rounded-none"
+                  className={cn(
+                    "text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1.5 py-1 px-2 h-6 rounded-none border-0",
+                    task.type === "bug" &&
+                      "bg-red-500/10 text-red-700 dark:text-red-400 border-red-200/20",
+                    task.type === "feature" &&
+                      "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200/20",
+                  )}
                 >
                   <FinalTypeIcon className="h-3.5 w-3.5" />
                   {task.type}
                 </Badge>
                 <Badge
-                  variant={
-                    task.priority === "critical" || task.priority === "high"
-                      ? "destructive"
-                      : "secondary"
-                  }
-                  className="text-[10px] uppercase tracking-wider font-semibold py-1 px-2 h-6 bg-opacity-10 hover:bg-opacity-20 rounded-none"
+                  variant="outline"
+                  className={cn(
+                    "text-[10px] uppercase tracking-wider font-semibold py-1 px-2 h-6 rounded-none border-0 flex items-center gap-1.5",
+                    task.priority === "critical" &&
+                      "bg-red-500/15 text-red-700 dark:text-red-400 hover:bg-red-500/25",
+                    task.priority === "high" &&
+                      "bg-orange-500/15 text-orange-700 dark:text-orange-400 hover:bg-orange-500/25",
+                    task.priority === "medium" &&
+                      "bg-blue-500/15 text-blue-700 dark:text-blue-400 hover:bg-blue-500/25",
+                    (!task.priority || task.priority === "low") &&
+                      "bg-slate-500/15 text-slate-700 dark:text-slate-400 hover:bg-slate-500/25",
+                  )}
                 >
+                  {task.priority === "critical" && (
+                    <AlertCircle className="h-3.5 w-3.5" />
+                  )}
+                  {task.priority === "high" && (
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  )}
+                  {task.priority === "medium" && (
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  )}
+                  {(!task.priority || task.priority === "low") && (
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  )}
                   {task.priority || "No Priority"}
                 </Badge>
               </div>
