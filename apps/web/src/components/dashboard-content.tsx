@@ -1,5 +1,6 @@
-import { useState, Fragment } from "react";
 import { useBoard } from "../hooks/use-boards";
+import { Reorder } from "motion/react";
+import { useEffect, useState } from "react";
 import {
   useColumns,
   useCreateColumn,
@@ -49,6 +50,7 @@ export function DashboardContent({
   const createColumn = useCreateColumn();
   const updateColumn = useUpdateColumn();
   const deleteColumn = useDeleteColumn();
+  const reorderColumns = useReorderColumns();
 
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState("");
@@ -56,52 +58,26 @@ export function DashboardContent({
   const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [deleteColumnId, setDeleteColumnId] = useState<string | null>(null);
-  const [activeDragColumnId, setActiveDragColumnId] = useState<string | null>(
-    null,
-  );
 
-  const reorderColumns = useReorderColumns();
+  // Optimistic state for reordering
+  const [orderedColumns, setOrderedColumns] = useState<typeof columns>([]);
 
-  const handleDragStart = (e: React.DragEvent, id: string) => {
-    setActiveDragColumnId(id);
-    e.dataTransfer.effectAllowed = "move";
-    // Set a transparent image or custom drag image if desired
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
-
-  const handleDrop = (e: React.DragEvent, targetColumnId: string) => {
-    e.preventDefault();
-    if (!activeDragColumnId || activeDragColumnId === targetColumnId) {
-      setActiveDragColumnId(null);
-      return;
+  useEffect(() => {
+    if (columns) {
+      setOrderedColumns(columns);
     }
+  }, [columns]);
 
-    if (!columns) return;
+  const handleReorder = (newOrder: typeof columns) => {
+    if (!newOrder) return;
 
-    const oldIndex = columns.findIndex((c) => c.id === activeDragColumnId);
-    const newIndex = columns.findIndex((c) => c.id === targetColumnId);
+    setOrderedColumns(newOrder);
 
-    if (oldIndex === -1 || newIndex === -1) {
-      setActiveDragColumnId(null);
-      return;
-    }
-
-    const newColumns = [...columns];
-    const [movedColumn] = newColumns.splice(oldIndex, 1);
-    newColumns.splice(newIndex, 0, movedColumn);
-
-    const newOrderIds = newColumns.map((c) => c.id);
-
+    const newOrderIds = newOrder.map((c) => c.id);
     reorderColumns.mutate({
       boardId,
       columnIds: newOrderIds,
     });
-
-    setActiveDragColumnId(null);
   };
 
   const handleAddColumn = async (e: React.FormEvent) => {
@@ -206,147 +182,152 @@ export function DashboardContent({
           {isColumnsLoading ? (
             <div className="w-80 p-4">Loading columns...</div>
           ) : (
-            columns?.map((column) => (
-              <Fragment key={column.id}>
-                <div
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, column.id)}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, column.id)}
-                  className={`flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm transition-opacity ${
-                    activeDragColumnId === column.id
-                      ? "opacity-50"
-                      : "opacity-100"
-                  }`}
-                >
-                  <div className="flex items-center justify-between min-h-[40px] cursor-move">
-                    {editingColumnId === column.id ? (
-                      <form
-                        className="flex items-center gap-2 flex-1 px-4 py-2"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          handleUpdateColumn(column.id);
-                        }}
-                      >
-                        <input
-                          autoFocus
-                          type="text"
-                          className="w-full rounded-none border px-2 py-1 text-sm outline-none focus:border-primary font-semibold"
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          onBlur={() => handleUpdateColumn(column.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Escape") {
-                              setEditingColumnId(null);
-                            }
+            <>
+              <Reorder.Group
+                axis="x"
+                values={orderedColumns || []}
+                onReorder={handleReorder}
+                className="flex gap-4 h-full items-start list-none p-0"
+              >
+                {orderedColumns?.map((column) => (
+                  <Reorder.Item
+                    key={column.id}
+                    value={column}
+                    className="flex h-full max-h-full w-80 shrink-0 flex-col border bg-background shadow-sm"
+                    whileDrag={{
+                      scale: 1.02,
+                      boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+                      cursor: "grabbing",
+                    }}
+                    style={{ position: "relative" }} // generic style needed for some reorder fixes sometimes
+                  >
+                    <div className="flex items-center justify-between min-h-[40px] cursor-move draggable-handle">
+                      {editingColumnId === column.id ? (
+                        <form
+                          className="flex items-center gap-2 flex-1 px-4 py-2"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            handleUpdateColumn(column.id);
                           }}
-                        />
-                        <Button
-                          type="submit"
-                          variant="ghost"
-                          size="icon"
-                          className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 bg-accent!"
-                          title="Update Column"
                         >
-                          <ArrowRight />
-                        </Button>
-                      </form>
-                    ) : (
-                      <>
-                        <h3 className="font-semibold text-sm truncate flex-1 px-4 py-2">
-                          {column.title}
-                        </h3>
-                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          {/* Hover effect to show buttons? No, user didn't ask for hover. */}
-                        </div>
-                        <div className="flex items-center ml-2 px-4 py-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 hover:bg-transparent"
-                            onClick={() => {
-                              setEditingColumnId(column.id);
-                              setEditTitle(column.title);
+                          <input
+                            autoFocus
+                            type="text"
+                            className="w-full rounded-none border px-2 py-1 text-sm outline-none focus:border-primary font-semibold"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            onBlur={() => handleUpdateColumn(column.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Escape") {
+                                setEditingColumnId(null);
+                              }
                             }}
-                            title="Edit Column"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
+                          />
                           <Button
+                            type="submit"
                             variant="ghost"
                             size="icon"
-                            className="rounded-none h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-transparent"
-                            onClick={() => setDeleteColumnId(column.id)}
-                            title="Delete Column"
+                            className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 bg-accent!"
+                            title="Update Column"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <ArrowRight />
                           </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <div className="h-px border-b border-edge"></div>
-                  <div className="px-4 py-2">
-                    <div className="flex-1 rounded-none border border-dashed border-muted-foreground/25 flex items-center justify-center text-sm text-muted-foreground">
-                      No tasks
+                        </form>
+                      ) : (
+                        <>
+                          <h3 className="font-semibold text-sm truncate flex-1 px-4 py-2 select-none">
+                            {column.title}
+                          </h3>
+                          <div className="flex items-center ml-2 px-4 py-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="rounded-none h-8 w-8 text-muted-foreground hover:text-blue-500 hover:bg-transparent"
+                              onClick={() => {
+                                setEditingColumnId(column.id);
+                                setEditTitle(column.title);
+                              }}
+                              title="Edit Column"
+                              onPointerDown={(e) => e.stopPropagation()} // Prevent drag start
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="rounded-none h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-transparent"
+                              onClick={() => setDeleteColumnId(column.id)}
+                              title="Delete Column"
+                              onPointerDown={(e) => e.stopPropagation()} // Prevent drag start
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  </div>
-                </div>
-                <div className="w-px h-full min-h-[calc(100svh-16rem)] border-r border-edge"></div>
-              </Fragment>
-            ))
-          )}
+                    <div className="h-px border-b border-edge"></div>
+                    <div className="px-4 py-2">
+                      <div className="flex-1 rounded-none border border-dashed border-muted-foreground/25 flex items-center justify-center text-sm text-muted-foreground">
+                        No tasks
+                      </div>
+                    </div>
+                  </Reorder.Item>
+                ))}
+              </Reorder.Group>
 
-          {/* Add Column */}
-          <div className="w-80 shrink-0">
-            {isAddingColumn ? (
-              <form
-                onSubmit={handleAddColumn}
-                className="flex items-center gap-2 rounded-none border bg-background p-4 shadow-sm mr-6"
-              >
-                <input
-                  autoFocus
-                  type="text"
-                  placeholder="Column title..."
-                  className="w-full rounded-none border px-3 py-1.5 text-sm outline-none focus:border-primary"
-                  value={newColumnTitle}
-                  onChange={(e) => setNewColumnTitle(e.target.value)}
-                  disabled={createColumn.isPending}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="rounded-none hover:cursor-pointer"
-                  disabled={createColumn.isPending}
-                  onClick={handleAddColumn}
-                >
-                  Add
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="rounded-none hover:cursor-pointer"
-                  onClick={() => {
-                    setIsAddingColumn(false);
-                    setNewColumnTitle("");
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </form>
-            ) : (
-              <Button
-                variant="outline"
-                className="h-auto w-full justify-start gap-2 p-4 text-muted-foreground hover:bg-background hover:text-foreground rounded-none border-dashed mr-6!"
-                onClick={() => setIsAddingColumn(true)}
-              >
-                <Plus className="h-4 w-4" />
-                Add Column
-              </Button>
-            )}
-          </div>
+              {/* Add Column */}
+              <div className="w-80 shrink-0">
+                {isAddingColumn ? (
+                  <form
+                    onSubmit={handleAddColumn}
+                    className="flex w-full items-center gap-2 rounded-none border bg-background p-4 shadow-sm mr-6"
+                  >
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="Column title..."
+                      className="w-full rounded-none border px-3 py-[5px]! text-sm outline-none focus:border-primary"
+                      value={newColumnTitle}
+                      onChange={(e) => setNewColumnTitle(e.target.value)}
+                      disabled={createColumn.isPending}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="rounded-none hover:cursor-pointer"
+                      disabled={createColumn.isPending}
+                      onClick={handleAddColumn}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="rounded-none hover:cursor-pointer"
+                      onClick={() => {
+                        setIsAddingColumn(false);
+                        setNewColumnTitle("");
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </form>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="h-auto w-full justify-start gap-2 p-4 text-muted-foreground hover:bg-background hover:text-foreground rounded-none border-dashed mr-6!"
+                    onClick={() => setIsAddingColumn(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Column
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </main>
 
