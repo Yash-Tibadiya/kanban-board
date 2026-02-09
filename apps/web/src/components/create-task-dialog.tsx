@@ -35,9 +35,14 @@ import { Label } from "./ui/label";
 interface CreateTaskDialogProps {
   columnId: string;
   order: number;
+  trigger?: React.ReactNode;
 }
 
-export function CreateTaskDialog({ columnId, order }: CreateTaskDialogProps) {
+export function CreateTaskDialog({
+  columnId,
+  order,
+  trigger,
+}: CreateTaskDialogProps) {
   const [open, setOpen] = useState(false);
   const createTask = useCreateTask();
 
@@ -74,12 +79,16 @@ export function CreateTaskDialog({ columnId, order }: CreateTaskDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-muted-foreground hover:text-foreground rounded-none"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Add Task
-        </Button>
+        {trigger ? (
+          trigger
+        ) : (
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground hover:text-foreground rounded-none"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add Task
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] rounded-none">
         <DialogHeader>

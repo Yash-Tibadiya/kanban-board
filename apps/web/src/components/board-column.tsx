@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { Ellipsis, Pencil, Trash2 } from "lucide-react";
+import { Ellipsis, Pencil, Plus, Trash2 } from "lucide-react";
 import { TaskItem } from "./task-item";
 import { toast } from "sonner";
 import { ScrollArea } from "./ui/scroll-area";
@@ -136,6 +136,20 @@ export function BoardColumn({ column }: BoardColumnProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <CreateTaskDialog
+          columnId={column.id}
+          order={tasks?.length || 0}
+          trigger={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-none"
+            >
+              <Plus className="h-4 w-4 text-green-500" />
+            </Button>
+          }
+        />
       </div>
 
       <ScrollArea className="flex-1 p-3 bg-muted/20">
