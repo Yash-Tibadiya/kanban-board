@@ -33,13 +33,70 @@ router.get("/", requireAuth, async (_req: Request, res: Response) => {
       .select()
       .from(board)
       .where(eq(board.userId, user.id))
-      .orderBy(board.createdAt);
+      .orderBy(board.order, board.createdAt);
 
     res.json(boards);
   } catch (error) {
     sendError(res, 500, {
       code: "INTERNAL",
       message: "Failed to fetch boards",
+    });
+  }
+});
+
+const reorderBoardsSchema = z.object({
+  boardIds: z.array(z.string()),
+});
+
+router.put("/reorder", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const result = reorderBoardsSchema.safeParse(req.body);
+
+    if (!result.success) {
+      return sendError(res, 400, {
+        code: "BAD_REQUEST",
+        message: "Invalid input",
+        details: result.error.issues.map((e) => ({
+          path: e.path.join("."),
+          issue: e.message,
+        })),
+      });
+    }
+
+    const user = res.locals.user;
+    const { boardIds } = result.data;
+
+    // Verify all boards belong to user
+    const userBoards = await db
+      .select()
+      .from(board)
+      .where(eq(board.userId, user.id));
+
+    const userBoardIds = new Set(userBoards.map((b) => b.id));
+    const allBoardsOwned = boardIds.every((id) => userBoardIds.has(id));
+
+    if (!allBoardsOwned) {
+      return sendError(res, 400, {
+        code: "BAD_REQUEST",
+        message: "One or more boards not found or access denied",
+      });
+    }
+
+    // Update order
+    await db.transaction(async (tx) => {
+      for (let i = 0; i < boardIds.length; i++) {
+        await tx
+          .update(board)
+          .set({ order: i, updatedAt: new Date() })
+          .where(eq(board.id, boardIds[i]));
+      }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    sendError(res, 500, {
+      code: "INTERNAL",
+      message: "Failed to reorder boards",
     });
   }
 });
@@ -90,6 +147,16 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
     const user = res.locals.user;
     const { title, description } = result.data;
 
+    // Calculate next order
+    const [lastBoard] = await db
+      .select()
+      .from(board)
+      .where(eq(board.userId, user.id))
+      .orderBy(sql`${board.order} DESC`)
+      .limit(1);
+
+    const nextOrder = lastBoard ? lastBoard.order + 1 : 0;
+
     const [newBoard] = await db
       .insert(board)
       .values({
@@ -97,11 +164,13 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
         title,
         description,
         userId: user.id,
+        order: nextOrder,
       })
       .returning();
 
     res.status(201).json(newBoard);
   } catch (error) {
+    console.error(error);
     sendError(res, 500, {
       code: "INTERNAL",
       message: "Failed to create board",

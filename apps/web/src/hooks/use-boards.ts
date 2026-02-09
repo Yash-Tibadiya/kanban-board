@@ -66,3 +66,14 @@ export function useDeleteBoard() {
     },
   });
 }
+
+export function useReorderBoards() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (boardIds: string[]) => api.reorderBoards(boardIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: boardKeys.lists() });
+    },
+  });
+}

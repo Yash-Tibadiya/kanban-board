@@ -99,6 +99,7 @@ export const board = sqliteTable("board", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
+  order: integer("order").notNull().default(0),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),

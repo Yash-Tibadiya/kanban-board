@@ -4,6 +4,7 @@ export type Board = {
   id: string;
   title: string;
   description: string | null;
+  order: number;
   userId: string;
   createdAt: string;
   updatedAt: string;
@@ -181,6 +182,12 @@ export const api = {
   ): Promise<{ success: true }> => {
     return api.put<{ success: true }>(`/columns/${columnId}/tasks/reorder`, {
       taskIds,
+    });
+  },
+
+  reorderBoards: async (boardIds: string[]): Promise<{ success: true }> => {
+    return api.put<{ success: true }>("/boards/reorder", {
+      boardIds,
     });
   },
 };
