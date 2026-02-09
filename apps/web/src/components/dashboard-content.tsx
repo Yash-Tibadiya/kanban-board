@@ -134,19 +134,7 @@ export function DashboardContent({
                 className="flex gap-4 h-full items-start list-none p-0"
               >
                 {orderedColumns?.map((column) => (
-                  <Reorder.Item
-                    key={column.id}
-                    value={column}
-                    className="flex h-full max-h-full w-80 shrink-0 flex-col bg-transparent"
-                    whileDrag={{
-                      scale: 1.02,
-                      boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
-                      cursor: "grabbing",
-                    }}
-                    style={{ position: "relative" }}
-                  >
-                    <BoardColumn column={column} />
-                  </Reorder.Item>
+                  <BoardColumn key={column.id} column={column} />
                 ))}
               </Reorder.Group>
 
